@@ -18,6 +18,7 @@
 | `button.png` | 像素风格按钮材质（112x32px） | 用户绘制 |
 | `slider-thumb.png` | 南瓜滑块拖动图标（28x31px） | 用户绘制 |
 | `hit1.wav` / `hit2.wav` / `hit3.wav` | 打击音效 | 用户上传 |
+| `perfect_ding.wav` | Perfect 判定音效（2200Hz 钟鸣，0.22s） | AI 合成，v52 新增 |
 | `escaping_gravity.ogg` | 内置曲目「Escaping Gravity」 | 用户上传 |
 | `escaping_gravity.flac` | Escaping Gravity 无损版 | 用户上传 |
 
@@ -1205,3 +1206,177 @@ L621-785     detectBeatsWithParams（调试参数检测）
 - 候选点增加节拍网格对齐约束: `snapTolerance = beatSec * 0.2`，仅保留落在拍线附近的点
 - 数量上限: `Math.floor(span / beatSec)`（hold 时长内的整拍数）
 - 无网格候选时回退: 直接在拍线位置生成音符（而非半拍步进）
+
+---
+
+### v52 — Perfect 音效替换 & 歌曲加载进度 & 音频分析加速
+
+**1. Perfect 音效替换（constants.js + perfect_ding.wav）**
+
+**背景**: 原 Star Burst 星爆音效（快速上行扫频 600→2600Hz）在游戏中听感突兀，用户要求换成清脆的"叮"声。
+
+**候选生成**: Python 合成 5 款叮声候选（Crystal / Bell / Chime / Warm / Pixel），用户试听后选择 **#3 Chime Ding**。
+
+**音效参数:**
+- 基频 2200Hz，4 层 detuned 正弦波对（±3Hz 拍频产生微光/闪烁质感）
+- 指数衰减 τ=0.06s，总时长 0.22s
+- 44100Hz 16-bit mono WAV，文件大小 ~19KB
+
+**加载方式重构:**
+- 移除 constants.js 中 ~47KB 的 base64 内嵌字符串
+- 改为 IIFE `loadPerfectSound()` 在页面加载时 `fetch('perfect_ding.wav')` → `ArrayBuffer`
+- `decodePerfectSound()` 在 AudioContext 创建后将 raw 数据解码为 `AudioBuffer`
+- constants.js 文件从 ~47KB 降至 ~28KB
+
+**新增文件:** `perfect_ding.wav`（需与 index.html 同目录部署）
+
+**2. 歌曲加载实时进度（constants.js）**
+
+**问题**: 移动端加载内置歌曲时只显示"正在加载..."，无进度反馈，用户以为卡死。
+
+**实现:**
+- 预设加载函数中，先读取 `response.headers.get('Content-Length')`
+- 若服务器返回 Content-Length 且浏览器支持 `response.body`（ReadableStream），使用 `getReader()` 流式读取
+- 每收到一个 chunk 更新状态栏: `正在加载「歌名」... 42% (1.8/4.3MB)`
+- 百分比上限 99%（最后 1% 留给 blob 组装）
+- 不支持流式读取时 fallback 到原来的 `resp.blob()`
+
+```javascript
+const reader = resp.body.getReader();
+let received = 0;
+const chunks = [];
+while (true) {
+  const { done, value } = await reader.read();
+  if (done) break;
+  chunks.push(value);
+  received += value.length;
+  const pct = Math.min(99, Math.round(received / total * 100));
+  presetStatus.textContent = '正在加载「' + songName + '」... ' + pct + '% (' + sizeMB + '/' + totalMB + 'MB)';
+}
+blob = new Blob(chunks);
+```
+
+**3. 音频分析性能优化（audioWorker.js）**
+
+**问题**: 桌面端选择本地歌曲后音频分析耗时过长（高采样率文件尤其明显）。
+
+**优化措施（综合提升约 3~4 倍）:**
+
+| 优化项 | 修改前 | 修改后 | 效果 |
+|--------|--------|--------|------|
+| 采样率 | 原始（可达 48kHz/96kHz） | >30kHz 时自动降采样至 ~22kHz | 数据量减半~四分之一 |
+| Hop Size | `sampleRate * 0.01` | `sampleRate * 0.02` | 帧数减半 |
+| 频段查找 | 每帧每 bin 计算 `j * sr / fftSize` | 预计算 `bandLo/bandMi/bandHi` Uint8Array 查找表 | 消除热循环中的浮点除法 |
+| 梳状滤波器 | `combFilter()` 函数 + 每 lag 新建 Float32Array | 内联循环 + 就地累加 energy | 消除函数调用和 GC 压力 |
+
+**降采样实现:**
+```javascript
+if (sr > 30000) {
+  const factor = Math.round(sr / 22050);
+  const newLen = Math.floor(data.length / factor);
+  pcm = new Float32Array(newLen);
+  for (let i = 0; i < newLen; i++) pcm[i] = data[i * factor];
+  sampleRate = sr / factor;
+}
+```
+
+---
+
+## 开发与部署工作流
+
+> 本节面向协作开发者/AI agent，描述项目的开发模式和部署链路。
+
+### 项目结构
+
+```
+C:\pixel-flute/              ← 用户本地项目目录（Windows）
+├── index.html               ← 游戏入口
+├── style.css                ← 全部 CSS
+├── constants.js             ← 全局常量、难度、resize、音频加载
+├── audio.js                 ← 音频分析、Worker 桥接
+├── notes.js                 ← Note/HoldNote 类、谱面后处理
+├── render.js                ← 渲染、游戏循环、事件、全屏
+├── tutorial.js              ← 教程系统
+├── debug.js                 ← 调试面板
+├── audioWorker.js           ← Web Worker（节拍检测 + 后处理管线）
+├── perfect_ding.wav         ← Perfect 判定音效
+├── hit1.wav / hit2.wav / hit3.wav  ← 打击音效
+├── character.png            ← 像素角色
+├── left.png / right.png     ← 音符图像
+├── background01.jpg / background02.jpg  ← 背景
+├── button.png               ← 按钮材质
+├── slider-thumb.png         ← 南瓜滑块
+├── preset.mp3               ← 拜无忧
+├── *.mp3                    ← 其它内置歌曲（共 78 首司南的歌）
+└── .gitignore
+```
+
+### 开发模式
+
+**用户环境:** Windows，使用 Git Bash 操作命令行。用户不熟悉 Git/GitHub，需要具体的逐步指令。
+
+**AI 辅助开发流程:**
+1. 用户描述需求（中文），AI 在沙盒中修改代码并测试
+2. AI 将修改后的文件打包供用户下载
+3. 用户将文件复制到 `C:\pixel-flute` 覆盖原文件
+4. 用户在 Git Bash 中执行推送命令（AI 提供具体命令）
+
+**典型交付指令模板:**
+```bash
+cd /c/pixel-flute
+git add <修改的文件列表>
+git commit -m "描述"
+git push
+```
+
+**注意事项:**
+- 用户使用 Git Bash，路径格式为 `/c/pixel-flute`（不是 `C:\pixel-flute`）
+- `~` 在 Git Bash 中表示 `C:/Users/用户名/`，不要用 `~/c/pixel-flute`
+- Git Bash 中粘贴用 Shift+Insert，复制用右键选中
+- 所有代码文件使用 UTF-8 编码（含中文注释和歌名）
+
+### 部署链路
+
+项目为纯静态前端（HTML + CSS + JS + 媒体文件），无需构建步骤，无需 Node.js/npm。
+
+**双平台部署:**
+
+```
+本地 C:\pixel-flute
+  │
+  │  git push
+  ▼
+GitHub: flayteas/Pixel-Rhythm (main 分支)
+  │
+  ├──→ GitHub Pages（自动部署）
+  │     URL: https://flayteas.github.io/Pixel-Rhythm/
+  │     设置: Settings → Pages → Deploy from branch → main → / (root)
+  │     延迟: 推送后约 1~2 分钟生效
+  │
+  └──→ Cloudflare Pages（自动部署）
+        URL: https://pixel-rhythm.pages.dev/（或自定义域名）
+        设置: Cloudflare Dashboard → Pages → 连接 Git → 选择 Pixel-Rhythm 仓库
+        构建命令: （空，不需要）
+        输出目录: /（根目录）
+        延迟: 推送后约 30 秒~1 分钟生效
+        优势: 全球 CDN，中国大陆访问速度优于 GitHub Pages
+```
+
+**Cloudflare Pages 首次设置要点:**
+- 需在 GitHub Settings → Applications → Cloudflare Pages 中授权访问目标仓库
+- 框架预设选 "None"，构建命令和输出目录留空
+- 无需安装任何 CLI 工具
+
+**访问统计:**
+- GitHub: 仓库 → Insights → Traffic（14 天页面浏览/独立访客，仅仓库管理员可见）
+- Cloudflare: Dashboard → Pages → 项目 → Analytics（请求数、带宽、地区分布，数据更丰富）
+
+### 代码修改注意事项
+
+- **纯静态项目**: 没有打包工具、没有模块系统、没有 npm。所有 JS 文件通过 `<script>` 标签按顺序加载，共享全局作用域
+- **加载顺序**: `constants.js` → `audio.js` → `notes.js` → `render.js` → `tutorial.js` → `debug.js`（顺序不可打乱）
+- **audioWorker.js 独立运行**: 在 Web Worker 中执行，不能访问 DOM 或主线程变量。与主线程仅通过 `postMessage` 通信
+- **两份分析代码**: `audio.js` 和 `audioWorker.js` 各有一份音频分析/后处理代码。Worker 版本为实际运行版本，主线程版本供调试面板直接调用。修改分析逻辑时**两份都要同步更新**
+- **谱面缓存 key**: 包含 `hold|mirror` 状态，切换设置后会自动重新生成。修改谱面生成逻辑后可能需要清除 localStorage 中的缓存
+- **资源文件**: 所有音效/图片/音乐与 index.html 同目录平铺放置，无子目录
+- **`.gitignore`**: 排除了残留重复文件、候选音效、临时开发文件等（详见文件内容）
