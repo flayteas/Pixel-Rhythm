@@ -517,6 +517,93 @@ holdMinSlider.addEventListener('input', () => {
 const dualEffectCb = document.getElementById('dualEffect');
 dualEffectCb.addEventListener('change', () => { dualEffectEnabled = dualEffectCb.checked; });
 
+// ============ LOCAL RECORDS (localStorage) ============
+const RECORDS_STORAGE_KEY = 'pixelRhythm_records';
+
+function getRecordKey(songFile, diff) {
+  return songFile + '|' + diff;
+}
+
+function getAllRecords() {
+  try {
+    const raw = localStorage.getItem(RECORDS_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch(e) { return {}; }
+}
+
+function getRecord(songFile, diff) {
+  const all = getAllRecords();
+  return all[getRecordKey(songFile, diff)] || null;
+}
+
+function saveRecord(songFile, diff, result) {
+  // result: { score, maxCombo, perfects, goods, hits, misses }
+  const all = getAllRecords();
+  const key = getRecordKey(songFile, diff);
+  const prev = all[key];
+  const isFC = result.misses === 0 && (result.perfects + result.goods + result.hits) > 0;
+  const isNewBest = !prev || result.score > prev.highScore;
+
+  if (isNewBest) {
+    all[key] = {
+      highScore: result.score,
+      maxCombo: result.maxCombo,
+      perfects: result.perfects,
+      goods: result.goods,
+      hits: result.hits,
+      misses: result.misses,
+      isFC: isFC,
+      playCount: (prev ? prev.playCount : 0) + 1,
+      lastPlayed: Date.now()
+    };
+  } else {
+    // Update play count and FC even if not a new high score
+    prev.playCount = (prev.playCount || 0) + 1;
+    prev.lastPlayed = Date.now();
+    if (isFC && !prev.isFC) prev.isFC = true;
+    all[key] = prev;
+  }
+
+  try {
+    localStorage.setItem(RECORDS_STORAGE_KEY, JSON.stringify(all));
+  } catch(e) { console.warn('Record save failed:', e); }
+
+  return { isNewBest, isFC, prev };
+}
+
+function getCurrentSongFile() {
+  // Get the song file identifier for the current song
+  const sel = document.getElementById('presetSelect');
+  if (sel && sel.value) return sel.value;
+  if (audioFileName) return audioFileName;
+  return '';
+}
+
+// Update FC badges on the preset select dropdown
+function updateFCBadges() {
+  const sel = document.getElementById('presetSelect');
+  if (!sel) return;
+  const all = getAllRecords();
+  for (const opt of sel.options) {
+    if (!opt.value) continue;
+    // Check all difficulties for FC
+    let hasFC = false;
+    let bestDiff = '';
+    for (const d of ['easy','normal','hard','expert']) {
+      const rec = all[getRecordKey(opt.value, d)];
+      if (rec && rec.isFC) { hasFC = true; bestDiff = d; }
+    }
+    // Strip old badge
+    const cleanName = opt.textContent.replace(/\s*[★☆]\s*FC.*$/, '').replace(/\s*\u2605\s*FC.*$/, '');
+    if (hasFC) {
+      const diffShort = { easy: 'E', normal: 'N', hard: 'H', expert: 'EX' }[bestDiff] || '';
+      opt.textContent = cleanName + ' \u2605FC(' + diffShort + ')';
+    } else {
+      opt.textContent = cleanName;
+    }
+  }
+}
+
 // ============ LOCAL SETTINGS PERSISTENCE (localStorage) ============
 const SETTINGS_STORAGE_KEY = 'pixelRhythm_settings';
 

@@ -988,6 +988,41 @@ function _showEndScreen() {
   document.getElementById('goodCount').textContent = goods;
   document.getElementById('hitCount').textContent = hits;
   document.getElementById('missCount').textContent = misses;
+
+  // Save record & show comparison
+  const songFile = getCurrentSongFile();
+  const compareEl = document.getElementById('recordCompare');
+  const newRecordEl = document.getElementById('newRecordBadge');
+  compareEl.style.display = 'none';
+  newRecordEl.style.display = 'none';
+
+  if (songFile) {
+    const result = {
+      score: Math.floor(score),
+      maxCombo: maxComboVal,
+      perfects, goods, hits, misses
+    };
+    const { isNewBest, prev } = saveRecord(songFile, currentDiff, result);
+
+    if (prev && prev.highScore) {
+      const diff = result.score - prev.highScore;
+      const sign = diff > 0 ? '+' : '';
+      compareEl.textContent = '\u5386\u53f2\u6700\u4f73: ' + prev.highScore + ' (\u5dee\u8ddd: ' + sign + diff + ')' +
+        (prev.isFC ? ' | FC \u2605' : '') +
+        ' | \u6700\u5927\u8fde\u51fb: ' + prev.maxCombo;
+      compareEl.style.display = 'block';
+    } else if (!prev) {
+      compareEl.textContent = '\u9996\u6b21\u6e38\u73a9\u6b64\u66f2!';
+      compareEl.style.display = 'block';
+    }
+
+    if (isNewBest && prev && prev.highScore) {
+      newRecordEl.style.display = 'block';
+    }
+
+    // Update FC badges on dropdown
+    updateFCBadges();
+  }
 }
 // ============ PAUSE / RESUME / REPLAY ============
 let pauseStartTime = 0;
@@ -1318,6 +1353,108 @@ document.getElementById('changelogBackBtn').addEventListener('click', () => {
   document.getElementById('changelogOverlay').style.display = 'none';
   document.getElementById('startScreen').style.display = 'flex';
 });
+
+// ============ RECORDS PAGE ============
+let _recordsCurrentDiff = 'expert';
+
+function renderRecordsList(diff) {
+  _recordsCurrentDiff = diff;
+  const container = document.getElementById('recordsList');
+  const all = getAllRecords();
+  const sel = document.getElementById('presetSelect');
+
+  // Collect all songs from dropdown
+  const songs = [];
+  for (const opt of sel.options) {
+    if (!opt.value) continue;
+    songs.push({ file: opt.value, name: opt.textContent.replace(/\s*\u2605FC.*$/, '') });
+  }
+
+  // Build table
+  let html = '<table style="width:100%;border-collapse:collapse;color:#c8c0e0;font-size:13px;">';
+  html += '<thead><tr style="border-bottom:2px solid #9b59b6;text-align:left;">';
+  html += '<th style="padding:6px 4px;color:#feca57;">#</th>';
+  html += '<th style="padding:6px 4px;color:#feca57;">歌曲</th>';
+  html += '<th style="padding:6px 4px;color:#feca57;text-align:right;">最高分</th>';
+  html += '<th style="padding:6px 4px;color:#feca57;text-align:right;">最大连击</th>';
+  html += '<th style="padding:6px 4px;color:#feca57;text-align:center;">判定</th>';
+  html += '<th style="padding:6px 4px;color:#feca57;text-align:center;">FC</th>';
+  html += '</tr></thead><tbody>';
+
+  let rank = 0;
+  // Sort songs: played songs first (by score desc), then unplayed
+  const played = [];
+  const unplayed = [];
+  for (const s of songs) {
+    const rec = all[getRecordKey(s.file, diff)];
+    if (rec) played.push({ ...s, rec });
+    else unplayed.push(s);
+  }
+  played.sort((a, b) => b.rec.highScore - a.rec.highScore);
+
+  for (const s of played) {
+    rank++;
+    const r = s.rec;
+    const fcBadge = r.isFC ? '<span style="color:#feca57;font-weight:bold;text-shadow:0 0 6px #feca57;">\u2605 FC</span>' : '<span style="color:#555;">-</span>';
+    const judgStr = '<span style="color:#feca57;">P' + r.perfects + '</span> <span style="color:#48dbfb;">G' + r.goods + '</span> <span style="color:#2ecc71;">H' + r.hits + '</span> <span style="color:#ff4444;">M' + r.misses + '</span>';
+    const rowBg = rank % 2 === 0 ? 'rgba(155,89,182,0.08)' : 'transparent';
+    html += '<tr style="border-bottom:1px solid rgba(155,89,182,0.2);background:' + rowBg + ';">';
+    html += '<td style="padding:5px 4px;">' + rank + '</td>';
+    html += '<td style="padding:5px 4px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + s.name + '</td>';
+    html += '<td style="padding:5px 4px;text-align:right;color:#fff;font-weight:bold;">' + r.highScore + '</td>';
+    html += '<td style="padding:5px 4px;text-align:right;">' + r.maxCombo + '</td>';
+    html += '<td style="padding:5px 4px;text-align:center;font-size:11px;">' + judgStr + '</td>';
+    html += '<td style="padding:5px 4px;text-align:center;">' + fcBadge + '</td>';
+    html += '</tr>';
+  }
+
+  for (const s of unplayed) {
+    rank++;
+    const rowBg = rank % 2 === 0 ? 'rgba(155,89,182,0.08)' : 'transparent';
+    html += '<tr style="border-bottom:1px solid rgba(155,89,182,0.1);background:' + rowBg + ';opacity:0.4;">';
+    html += '<td style="padding:5px 4px;">' + rank + '</td>';
+    html += '<td style="padding:5px 4px;">' + s.name + '</td>';
+    html += '<td colspan="4" style="padding:5px 4px;text-align:center;color:#666;">--\u672a\u6e38\u73a9--</td>';
+    html += '</tr>';
+  }
+
+  html += '</tbody></table>';
+
+  // Summary
+  const totalPlayed = played.length;
+  const totalFC = played.filter(s => s.rec.isFC).length;
+  const totalScore = played.reduce((sum, s) => sum + s.rec.highScore, 0);
+  html = '<div style="text-align:center;margin-bottom:12px;color:#e0c3fc;font-size:14px;">' +
+    '\u5df2\u6e38\u73a9: ' + totalPlayed + '/' + songs.length +
+    ' | FC: ' + totalFC +
+    ' | \u603b\u5206: ' + totalScore +
+    '</div>' + html;
+
+  container.innerHTML = html;
+
+  // Update tab active state
+  document.querySelectorAll('.rec-tab').forEach(btn => {
+    btn.classList.toggle('rec-tab-active', btn.dataset.diff === diff);
+  });
+}
+
+document.getElementById('recordsBtn').addEventListener('click', () => {
+  document.getElementById('startScreen').style.display = 'none';
+  document.getElementById('recordsOverlay').style.display = 'flex';
+  renderRecordsList(_recordsCurrentDiff);
+});
+document.getElementById('recordsBackBtn').addEventListener('click', () => {
+  document.getElementById('recordsOverlay').style.display = 'none';
+  document.getElementById('startScreen').style.display = 'flex';
+});
+document.querySelectorAll('.rec-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    renderRecordsList(btn.dataset.diff);
+  });
+});
+
+// Update FC badges on page load
+updateFCBadges();
 document.getElementById('mirrorCheck').addEventListener('change', (e) => {
   mirrorMode = e.target.checked;
   beats = null; // force re-detection with new mirror setting

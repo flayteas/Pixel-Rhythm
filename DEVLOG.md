@@ -1282,6 +1282,62 @@ if (sr > 30000) {
 
 ---
 
+### v53 — 本地成绩记录系统
+
+**功能概述**: 使用 localStorage 为每首歌每个难度保存个人最佳成绩，提供独立成绩页面、结算对比和 FC 徽章。
+
+**数据结构 (`pixelRhythm_records`)**
+
+```javascript
+// key: "songFile.mp3|difficulty"
+// value:
+{
+  highScore: 28000,
+  maxCombo: 200,
+  perfects: 120, goods: 30, hits: 10, misses: 0,
+  isFC: true,
+  playCount: 3,
+  lastPlayed: 1711526400000  // Date.now()
+}
+```
+
+**新增函数 (constants.js)**
+
+| 函数 | 作用 |
+|------|------|
+| `getAllRecords()` | 读取全部记录 |
+| `getRecord(songFile, diff)` | 读取指定歌曲+难度的记录 |
+| `saveRecord(songFile, diff, result)` | 保存成绩。分数更高时更新全部字段；分数不高时仅更新 playCount/lastPlayed/isFC |
+| `getCurrentSongFile()` | 获取当前歌曲文件名（优先 presetSelect，fallback audioFileName） |
+| `updateFCBadges()` | 扫描所有记录，为下拉列表中的 FC 歌曲追加 `★FC(EX)` 等标识 |
+| `getRecordKey(songFile, diff)` | 生成 localStorage key |
+
+**成绩记录页面 (index.html + render.js)**
+
+- 入口: 开始界面「成绩记录」按钮 → `#recordsOverlay` 全屏覆盖层
+- 顶部: 四个难度标签按钮（Expert/Hard/Normal/Easy），点击切换
+- 统计栏: `已游玩: X/80 | FC: Y | 总分: Z`
+- 表格: 已游玩歌曲按 highScore 降序排列，未游玩歌曲灰色排在末尾
+- 每行显示: 排名、歌名、最高分（白色粗体）、最大连击、判定分布（P/G/H/M 各自颜色）、FC 标记
+
+**结算界面增强 (render.js `_showEndScreen`)**
+
+- `#recordCompare`: 显示历史最佳分数 + 分差（正/负）+ 历史最大连击 + FC 状态
+- `#newRecordBadge`: 刷新最高分时显示红色 "NEW RECORD!" 文字（带发光效果）
+- 首次游玩显示"首次游玩此曲!"
+- 结算时自动调用 `saveRecord` + `updateFCBadges`
+
+**FC 徽章 (`updateFCBadges`)**
+
+- 遍历所有 `<option>` 的 value，检查四个难度的记录
+- 找到 isFC=true 的最高难度，追加 ` ★FC(EX)` / ` ★FC(H)` 等文字
+- 页面加载时调用一次，每次结算后再次调用
+- 用正则 strip 旧标记避免重复追加
+
+**修改文件**: `constants.js`（记录函数）、`render.js`（成绩页面渲染 + 结算对比 + 事件监听）、`index.html`（recordsOverlay HTML + recordsBtn + 结算对比元素）、`style.css`（rec-tab 样式）
+
+---
+
 ## 开发与部署工作流
 
 > 本节面向协作开发者/AI agent，描述项目的开发模式和部署链路。

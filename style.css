@@ -1,24 +1,26 @@
 * { margin:0; padding:0; box-sizing:border-box; }
 html, body { width:100%; height:100%; overflow:hidden; background:#1a1a2e; font-family:'Courier New',monospace; color:#fff; touch-action:none; -webkit-touch-callout:none; -webkit-user-select:none; user-select:none; }
 #app { width:100%; height:100%; position:relative; }
-#startScreen { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:10; background:linear-gradient(180deg,#0f0c29,#302b63,#24243e); overflow-y:auto; padding:20px 0; }
-#startHeader { text-align:center; flex-shrink:0; }
-#startBody { display:flex; flex-direction:column; align-items:center; width:100%; }
-#startCol1, #startCol2 { display:flex; flex-direction:column; align-items:center; }
+
+/* ============ START SCREEN — horizontal two-column default ============ */
+#startScreen { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:10; background:linear-gradient(180deg,#0f0c29,#302b63,#24243e); overflow-y:auto; padding:10px 20px; }
+#startHeader { text-align:center; flex-shrink:0; margin-bottom:6px; }
+#startBody { display:flex; flex-direction:row; align-items:center; justify-content:center; gap:28px; width:100%; max-width:800px; }
+#startCol1, #startCol2 { display:flex; flex-direction:column; align-items:center; flex:1; min-width:0; gap:6px; }
 #mainActions { margin-top:10px; display:flex; gap:10px; align-items:center; justify-content:center; }
-#secondaryActions { display:flex; gap:8px; align-items:center; justify-content:center; flex-wrap:wrap; }
+#secondaryActions { display:flex; gap:8px; align-items:center; justify-content:center; flex-wrap:wrap; margin-top:6px; }
 #utilActions { display:flex; gap:8px; align-items:center; justify-content:center; flex-wrap:wrap; margin-top:6px; }
-#gameTitle { font-size:clamp(28px,8vw,52px); color:#ff6b6b; text-shadow:0 0 10px #ff6b6b,0 0 20px #c0392b; letter-spacing:6px; image-rendering:pixelated; }
-#subtitle { font-size:clamp(12px,3vw,18px); color:#e0c3fc; margin-top:4px; letter-spacing:10px; }
-#uploadArea { margin-top:20px; text-align:center; }
-#uploadLabel { display:inline-block; padding:14px 32px; background:url('button.png') center/100% 100% no-repeat; color:#fff; font-size:clamp(14px,3.5vw,18px); cursor:pointer; border:none; image-rendering:pixelated; transition:transform .1s, filter .15s; text-shadow:1px 1px 2px rgba(0,0,0,0.8), 0 0 4px rgba(0,0,0,0.5); }
+#gameTitle { font-size:clamp(20px,5vw,42px); color:#ff6b6b; text-shadow:0 0 10px #ff6b6b,0 0 20px #c0392b; letter-spacing:4px; image-rendering:pixelated; }
+#subtitle { font-size:clamp(10px,2vw,16px); color:#e0c3fc; margin-top:2px; letter-spacing:8px; }
+#uploadArea { margin-top:8px; text-align:center; }
+#uploadLabel { display:inline-block; padding:10px 24px; background:url('button.png') center/100% 100% no-repeat; color:#fff; font-size:clamp(12px,2.5vw,16px); cursor:pointer; border:none; image-rendering:pixelated; transition:transform .1s, filter .15s; text-shadow:1px 1px 2px rgba(0,0,0,0.8), 0 0 4px rgba(0,0,0,0.5); }
 #uploadLabel:hover { background-color:transparent; transform:scale(1.05); filter:brightness(1.2); }
 #audioInput { display:none; }
-#fileName { margin-top:8px; color:#e0c3fc; font-size:13px; min-height:18px; }
-#optionsRow { margin-top:16px; display:grid; grid-template-columns:auto auto; gap:10px 24px; align-items:center; justify-content:center; }
-#optionsRow label { font-size:clamp(12px,3vw,14px); color:#e0c3fc; white-space:nowrap; display:flex; align-items:center; gap:6px; }
+#fileName { margin-top:4px; color:#e0c3fc; font-size:12px; min-height:16px; }
+#optionsRow { margin-top:4px; display:grid; grid-template-columns:1fr; gap:4px 0; align-items:center; justify-items:start; }
+#optionsRow label { font-size:clamp(11px,2vw,13px); color:#e0c3fc; white-space:nowrap; display:flex; align-items:center; gap:6px; }
 #settingsGrid label { font-size:clamp(12px,3vw,14px); color:#e0c3fc; white-space:nowrap; display:flex; align-items:center; gap:6px; }
-#diffSelect { font-family:inherit; font-size:14px; padding:6px 12px; background:#302b63; color:#fff; border:2px solid #9b59b6; border-radius:0; cursor:pointer; }
+#diffSelect { font-family:inherit; font-size:13px; padding:4px 10px; background:#302b63; color:#fff; border:2px solid #9b59b6; border-radius:0; cursor:pointer; }
 /* Pixel art button base */
 .pixel-btn {
   background: url('button.png') center/100% 100% no-repeat !important;
@@ -34,23 +36,27 @@ html, body { width:100%; height:100%; overflow:hidden; background:#1a1a2e; font-
 .pixel-btn:hover { transform: scale(1.05); filter: brightness(1.2); }
 .pixel-btn:active { transform: scale(0.97); filter: brightness(0.9); }
 .pixel-btn:disabled { filter: grayscale(0.7) brightness(0.6); transform: none; cursor: not-allowed; }
+/* Records tab buttons */
+.rec-tab { opacity: 0.5; transition: opacity 0.2s; }
+.rec-tab-active { opacity: 1; filter: brightness(1.3); }
+.rec-tab:hover { opacity: 0.8; }
 /* Pumpkin slider thumb */
 input[type=range] { -webkit-appearance: none; appearance: none; background: transparent; cursor: pointer; }
 input[type=range]::-webkit-slider-runnable-track { height: 6px; background: rgba(155,89,182,0.4); border-radius: 3px; }
 input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 22px; height: 24px; margin-top: -9px; background: url('slider-thumb.png') center/contain no-repeat; image-rendering: pixelated; border: none; cursor: pointer; }
 input[type=range]::-moz-range-track { height: 6px; background: rgba(155,89,182,0.4); border-radius: 3px; border: none; }
 input[type=range]::-moz-range-thumb { width: 22px; height: 24px; background: url('slider-thumb.png') center/contain no-repeat; image-rendering: pixelated; border: none; border-radius: 0; cursor: pointer; }
-#startBtn { margin-top:20px; padding:16px 52px; font-size:clamp(16px,4vw,22px); font-family:inherit; color:#fff; cursor:pointer; }
+#startBtn { margin-top:0; padding:10px 36px; font-size:clamp(14px,3vw,18px); font-family:inherit; color:#fff; cursor:pointer; }
 #startBtn:disabled { cursor:not-allowed; }
 #startBtn:not(:disabled):hover { }
-#loadChartBtn { margin-top:10px; padding:10px 28px; font-size:clamp(12px,3vw,14px); font-family:inherit; color:#fff; cursor:pointer; display:none; }
+#loadChartBtn { margin-top:0; padding:8px 20px; font-size:clamp(11px,2vw,13px); font-family:inherit; color:#fff; cursor:pointer; display:none; }
 #loadChartBtn:hover { }
-#fullscreenBtn { margin-top:8px; padding:12px 36px; font-size:clamp(13px,3vw,16px); font-family:inherit; color:#fff; cursor:pointer; }
+#fullscreenBtn { margin-top:0; padding:8px 24px; font-size:clamp(12px,2.5vw,14px); font-family:inherit; color:#fff; cursor:pointer; }
 #fullscreenBtn:hover { }
-#hint { margin-top:12px; font-size:11px; color:#888; }
-#presetArea { margin-top:16px; text-align:center; }
-#presetStatus { margin-top:8px; color:#e0c3fc; font-size:12px; min-height:18px; }
-#divider { margin-top:14px; color:#666; font-size:12px; letter-spacing:2px; }
+#hint { margin-top:6px; font-size:10px; color:#888; text-align:center; }
+#presetArea { margin-top:4px; text-align:center; }
+#presetStatus { margin-top:4px; color:#e0c3fc; font-size:11px; min-height:16px; }
+#divider { margin-top:6px; color:#666; font-size:11px; letter-spacing:2px; }
 #gameCanvas { position:absolute; inset:0; display:none; image-rendering:pixelated; outline:none; }
 #uiOverlay { position:absolute; top:10px; left:0; right:0; display:flex; justify-content:space-between; padding:0 16px; font-size:clamp(14px,3.5vw,18px); z-index:5; pointer-events:none; text-shadow:0 0 6px rgba(0,0,0,.8); }
 .ui-pop { transition: transform 0.15s ease-out, color 0.15s; }
@@ -74,7 +80,7 @@ input[type=range]::-moz-range-thumb { width: 22px; height: 24px; background: url
 #pauseRetryBtn:hover { }
 #pauseExitBtn { }
 #pauseExitBtn:hover { }
-#debugBtn { margin-top:8px; padding:10px 28px; font-size:clamp(12px,3vw,14px); font-family:inherit; color:#fff; cursor:pointer; }
+#debugBtn { margin-top:0; padding:8px 20px; font-size:clamp(11px,2vw,13px); font-family:inherit; color:#fff; cursor:pointer; }
 #debugBtn:hover { }
 #debugPanel { position:fixed; top:0; right:0; width:420px; max-width:100vw; height:100vh; background:rgba(15,12,41,0.95); border-left:2px solid #9b59b6; z-index:100; display:none; flex-direction:column; overflow:hidden; font-size:13px; color:#e0c3fc; }
 #debugPanel.open { display:flex; }
@@ -110,7 +116,19 @@ input[type=range]::-moz-range-thumb { width: 22px; height: 24px; background: url
 #calibrationInfo { font-size:12px; line-height:1.6; margin-top:6px; }
 #calibrationInfo .cal-result { color:#2ecc71; font-weight:bold; }
 #dbgNoAudioHint { color:#e74c3c; font-size:12px; margin-bottom:8px; display:none; }
-@media (max-width:600px) {
+
+/* ============ NARROW PORTRAIT: stack to single column ============ */
+@media (max-width:520px) and (orientation:portrait) {
+  #startScreen { padding:14px 8px; }
+  #startBody { flex-direction:column; gap:8px; }
+  #startCol1, #startCol2 { width:100%; }
+  #gameTitle { font-size:clamp(24px,7vw,40px); letter-spacing:5px; }
+  #subtitle { font-size:clamp(10px,2.5vw,14px); letter-spacing:6px; }
+  #optionsRow { grid-template-columns:auto auto; gap:8px 20px; justify-items:center; }
+  #startBtn { padding:14px 44px; font-size:clamp(15px,4vw,20px); }
+  #fullscreenBtn { padding:10px 30px; font-size:clamp(12px,3vw,15px); }
+  #debugBtn { padding:8px 20px; font-size:12px; }
+  #hint, #hint2 { font-size:10px !important; padding:0 8px; text-align:center; }
   #debugPanel { width:100vw; border-left:none; border-top:2px solid #9b59b6; }
   #debugPanel .dp-body { padding:8px 10px; }
   #debugPanel .dp-row label { min-width:70px; font-size:11px; }
@@ -118,73 +136,64 @@ input[type=range]::-moz-range-thumb { width: 22px; height: 24px; background: url
   #debugPanel .dp-btn { padding:5px 8px; font-size:11px; }
   #waveformWrap { height:100px; }
   #waveformWrap .wf-zoom button { width:32px; height:32px; font-size:18px; }
-  #optionsRow { grid-template-columns:1fr !important; gap:8px !important; padding:0 12px; }
   #settingsGrid { grid-template-columns:1fr !important; gap:8px !important; padding:0 12px; }
-  #startScreen { padding:12px 8px; }
-  #startBtn { padding:12px 32px; }
-  #fullscreenBtn { padding:8px 24px; }
-  #debugBtn { padding:8px 20px; font-size:12px; }
-  #hint, #hint2 { font-size:10px !important; padding:0 8px; text-align:center; }
 }
-/* Mobile landscape: two-column layout to fit all UI in viewport */
-@media (max-height:450px) and (orientation:landscape) {
-  #startScreen { padding:6px 20px; justify-content:center; overflow-y:auto; -webkit-overflow-scrolling:touch; }
-  #startHeader { margin-bottom:4px; }
-  #gameTitle { font-size:clamp(16px,4vw,24px); letter-spacing:2px; margin-top:0; }
+
+/* ============ COMPACT LANDSCAPE: tighten spacing ============ */
+@media (max-height:450px) {
+  #startScreen { padding:4px 16px; }
+  #startHeader { margin-bottom:2px; }
+  #gameTitle { font-size:clamp(16px,4vw,24px); letter-spacing:2px; }
   #subtitle { font-size:9px; margin-top:0; letter-spacing:3px; }
-  #startBody { flex-direction:row; align-items:center; justify-content:center; gap:24px; width:100%; max-width:720px; }
-  #startCol1 { flex:1; min-width:0; align-items:center; gap:4px; }
-  #startCol2 { flex:1; min-width:0; align-items:center; gap:3px; }
-  #presetArea { margin-top:2px; text-align:center; }
+  #startBody { gap:20px; max-width:720px; }
+  #startCol1, #startCol2 { gap:3px; }
+  #presetArea { margin-top:1px; }
   #presetArea label { font-size:11px !important; }
   #presetArea select { font-size:12px !important; padding:4px 8px !important; max-width:220px; }
-  #presetStatus { font-size:9px; min-height:12px; margin-top:1px; }
-  #divider { margin-top:3px; font-size:9px; }
-  #uploadArea { margin-top:3px; }
-  #uploadLabel { padding:5px 14px; font-size:11px !important; }
+  #presetStatus { font-size:9px; min-height:10px; margin-top:1px; }
+  #divider { margin-top:2px; font-size:9px; }
+  #uploadArea { margin-top:2px; }
+  #uploadLabel { padding:4px 12px; font-size:11px !important; }
   #fileName { font-size:9px; min-height:10px; margin-top:1px; }
-  #hint, #hint2 { font-size:8px !important; margin-top:2px !important; color:#666; text-align:center; padding:0 4px; }
-  #optionsRow { margin-top:0 !important; grid-template-columns:1fr !important; gap:3px 0 !important; justify-items:start; padding:0; }
+  #hint, #hint2 { font-size:8px !important; margin-top:1px !important; color:#666; }
+  #optionsRow { margin-top:0 !important; gap:3px 0 !important; }
   #optionsRow label { font-size:10px !important; }
   #optionsRow input[type=range] { width:55px !important; }
   #optionsRow select { font-size:11px !important; padding:3px 6px !important; }
-  #mainActions { margin-top:6px !important; gap:6px; }
-  #startBtn { margin-top:0 !important; padding:7px 22px !important; font-size:12px !important; }
-  #settingsBtn { padding:7px 16px !important; font-size:11px !important; }
-  #secondaryActions { margin-top:4px; gap:6px; }
-  #fullscreenBtn { margin-top:0 !important; padding:5px 14px !important; font-size:10px !important; }
-  #loadChartBtn { margin-top:0 !important; padding:4px 12px !important; font-size:9px !important; }
-  #utilActions { margin-top:4px; gap:5px; }
-  #debugBtn { margin-top:0 !important; padding:4px 10px !important; font-size:9px !important; }
+  #mainActions { margin-top:4px !important; gap:6px; }
+  #startBtn { padding:6px 20px !important; font-size:12px !important; }
+  #settingsBtn { padding:6px 14px !important; font-size:11px !important; }
+  #secondaryActions { margin-top:3px; gap:6px; }
+  #fullscreenBtn { padding:5px 14px !important; font-size:10px !important; }
+  #loadChartBtn { padding:4px 12px !important; font-size:9px !important; }
+  #utilActions { margin-top:3px; gap:4px; }
+  #debugBtn { padding:4px 10px !important; font-size:9px !important; }
   #tutorialBtn { padding:4px 10px !important; font-size:9px !important; }
   #changelogBtn { padding:4px 10px !important; font-size:9px !important; }
-  /* End / Pause screens compact in landscape */
   #pauseOverlay button { padding:8px 28px; font-size:14px; min-width:140px; }
   #endScreen h2 { font-size:22px; margin-bottom:8px; }
   #endScreen p { font-size:13px; margin:3px 0; }
   #endScreen button { margin-top:6px; padding:8px 24px; font-size:14px; }
 }
-/* Extra short landscape (e.g. notched phones, <=360px height) */
-@media (max-height:360px) and (orientation:landscape) {
-  #startScreen { padding:4px 16px; }
-  #startHeader { margin-bottom:2px; }
+
+/* ============ EXTRA SHORT: hide non-essential ============ */
+@media (max-height:360px) {
+  #startScreen { padding:2px 12px; }
   #gameTitle { font-size:clamp(14px,3.5vw,20px); }
   #subtitle { display:none; }
-  #startBody { gap:16px; }
-  #presetArea label { font-size:10px !important; }
-  #presetArea select { font-size:11px !important; padding:3px 6px !important; }
+  #startBody { gap:14px; }
   #divider { display:none; }
-  #uploadLabel { padding:4px 12px; font-size:10px !important; }
   #hint { display:none; }
   #hint2 { display:none; }
   #optionsRow label { font-size:9px !important; }
-  #mainActions { margin-top:4px !important; }
-  #startBtn { padding:6px 18px !important; font-size:11px !important; }
-  #settingsBtn { padding:6px 14px !important; font-size:10px !important; }
-  #fullscreenBtn { padding:5px 12px !important; font-size:9px !important; }
-  #utilActions { gap:4px; }
+  #mainActions { margin-top:2px !important; }
+  #startBtn { padding:5px 16px !important; font-size:11px !important; }
+  #settingsBtn { padding:5px 12px !important; font-size:10px !important; }
+  #fullscreenBtn { padding:4px 12px !important; font-size:9px !important; }
+  #utilActions { gap:3px; }
   #debugBtn, #tutorialBtn, #changelogBtn { padding:3px 8px !important; font-size:8px !important; }
 }
+
 #tutorialScreen { position:absolute; inset:0; display:none; flex-direction:column; align-items:center; z-index:18; background:linear-gradient(180deg,#0f0c29,#302b63,#24243e); overflow-y:auto; padding:20px 0; }
 #tutorialScreen.open { display:flex; }
 #tutorialTitle { font-size:clamp(24px,6vw,40px); color:#ff6b6b; text-shadow:0 0 10px #ff6b6b,0 0 20px #c0392b; letter-spacing:4px; margin-top:16px; }
