@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Perfect 音效试听</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0f0c29;color:#e0c3fc;font-family:'Courier New',monospace;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+h1{font-size:24px;color:#ff6b6b;margin-bottom:8px;letter-spacing:2px}
+p.sub{font-size:14px;color:#9b9ecf;margin-bottom:30px}
+.card{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:20px 28px;margin:10px;width:min(420px,90vw);display:flex;align-items:center;gap:16px;cursor:pointer;transition:all .2s}
+.card:hover{background:rgba(254,202,87,0.1);border-color:#feca57;transform:scale(1.02)}
+.card:active{transform:scale(0.98)}
+.num{font-size:32px;font-weight:bold;color:#feca57;min-width:40px;text-align:center}
+.info{flex:1}
+.info .name{font-size:16px;font-weight:bold;color:#fff;margin-bottom:4px}
+.info .desc{font-size:12px;color:#9b9ecf;line-height:1.4}
+.info .dur{font-size:11px;color:#666;margin-top:2px}
+.play-icon{font-size:28px;color:#feca57;opacity:0.6;transition:opacity .2s}
+.card:hover .play-icon{opacity:1}
+.hint{margin-top:30px;font-size:13px;color:#666;text-align:center}
+</style>
+</head>
+<body>
+<h1>Perfect 击打音效试听</h1>
+<p class="sub">点击卡片播放，选择你喜欢的音效</p>
+
+<div class="card" onclick="play('perfect_sfx_1_crystal.wav')">
+  <div class="num">1</div>
+  <div class="info">
+    <div class="name">Crystal Chime 水晶琴</div>
+    <div class="desc">明亮的上行琶音，四个递增频率叠加，清脆剔透</div>
+    <div class="dur">0.35s | 1200→2400Hz</div>
+  </div>
+  <div class="play-icon">▶</div>
+</div>
+
+<div class="card" onclick="play('perfect_sfx_2_sparkle.wav')">
+  <div class="num">2</div>
+  <div class="info">
+    <div class="name">Sparkle Ping 闪光叮</div>
+    <div class="desc">金属质感，带颤音的高频ping，瞬间attack很锐利</div>
+    <div class="dur">0.30s | 1800Hz + vibrato</div>
+  </div>
+  <div class="play-icon">▶</div>
+</div>
+
+<div class="card" onclick="play('perfect_sfx_3_bell.wav')">
+  <div class="num">3</div>
+  <div class="info">
+    <div class="name">Warm Bell 温暖铃</div>
+    <div class="desc">柔和温暖的钟铃声，多泛音共鸣，余韵悠长</div>
+    <div class="dur">0.45s | 800~2800Hz partials</div>
+  </div>
+  <div class="play-icon">▶</div>
+</div>
+
+<div class="card" onclick="play('perfect_sfx_4_pixel.wav')">
+  <div class="num">4</div>
+  <div class="info">
+    <div class="name">Pixel Pop 像素弹</div>
+    <div class="desc">8-bit复古风，方波下滑扫频+噪声burst，干脆利落</div>
+    <div class="dur">0.20s | 1600→400Hz sweep</div>
+  </div>
+  <div class="play-icon">▶</div>
+</div>
+
+<div class="card" onclick="play('perfect_sfx_5_starburst.wav')">
+  <div class="num">5</div>
+  <div class="info">
+    <div class="name">Star Burst 星爆</div>
+    <div class="desc">快速上行扫频+闪烁泛音尾巴，有"升起绽放"的感觉</div>
+    <div class="dur">0.40s | 600→2600Hz + shimmer</div>
+  </div>
+  <div class="play-icon">▶</div>
+</div>
+
+<p class="hint">所有音效均为合成生成，可直接用于游戏</p>
+
+<script>
+let actx;
+const cache = {};
+async function play(file) {
+  if (!actx) actx = new AudioContext();
+  if (!cache[file]) {
+    const resp = await fetch(file);
+    const buf = await resp.arrayBuffer();
+    cache[file] = await actx.decodeAudioData(buf);
+  }
+  const src = actx.createBufferSource();
+  src.buffer = cache[file];
+  src.connect(actx.destination);
+  src.start();
+}
+</script>
+</body>
+</html>
