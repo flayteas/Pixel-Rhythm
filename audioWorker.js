@@ -69,10 +69,13 @@ function estimateBPM(onsetEnv, hopSec) {
   const maxLag = Math.floor(60 / (60 * hopSec));
   const n = onsetEnv.length;
   let bestLag = minLag, bestEnergy = -Infinity;
+  // Reuse single buffer instead of allocating per lag
   for (let lag = minLag; lag <= Math.min(maxLag, Math.floor(n / 2)); lag++) {
-    const filtered = combFilter(onsetEnv, lag);
     let energy = 0;
-    for (let i = 0; i < filtered.length; i++) energy += filtered[i] * filtered[i];
+    for (let i = lag; i < n; i++) {
+      const v = onsetEnv[i] + onsetEnv[i - lag];
+      energy += v * v;
+    }
     if (energy > bestEnergy) { bestEnergy = energy; bestLag = lag; }
   }
   const bpm = 60 / (bestLag * hopSec);
@@ -243,16 +246,25 @@ function assignNoteDirections(onsets) {
 
 // ============ MULTI-RES SPECTRAL FLUX ============
 function computeMultiResFlux(data, sr) {
-  const shortWin = Math.floor(sr * 0.02);
-  const longWin = Math.floor(sr * 0.08);
-  const hopSize = Math.floor(sr * 0.01);
-  const hopSec = hopSize / sr;
+  // Downsample to ~22050 if needed, halves computation for 44.1k/48k sources
+  let pcm = data, sampleRate = sr;
+  if (sr > 30000) {
+    const factor = Math.round(sr / 22050);
+    const newLen = Math.floor(data.length / factor);
+    pcm = new Float32Array(newLen);
+    for (let i = 0; i < newLen; i++) pcm[i] = data[i * factor];
+    sampleRate = sr / factor;
+  }
+  const shortWin = Math.floor(sampleRate * 0.02);
+  const longWin = Math.floor(sampleRate * 0.08);
+  const hopSize = Math.floor(sampleRate * 0.02);
+  const hopSec = hopSize / sampleRate;
   const fftN = 256;
   function computeRMS(winSz) {
     const energies = [];
-    for (let i = 0; i + winSz < data.length; i += hopSize) {
+    for (let i = 0; i + winSz < pcm.length; i += hopSize) {
       let e = 0;
-      for (let j = 0; j < winSz; j++) e += data[i + j] * data[i + j];
+      for (let j = 0; j < winSz; j++) e += pcm[i + j] * pcm[i + j];
       energies.push(Math.sqrt(e / winSz));
     }
     return energies;
@@ -273,14 +285,21 @@ function computeMultiResFlux(data, sr) {
   const combinedFlux = new Float32Array(nFrames);
   for (let i = 0; i < nFrames; i++) combinedFlux[i] = 0.6 * (shortFlux[i] || 0) + 0.4 * (longFlux[i] || 0);
   const lowE = [], midE = [], hiE = [];
-  for (let i = 0; i + shortWin < data.length; i += hopSize) {
+  // Precompute frequency band lookup
+  const n = Math.min(fftN, shortWin);
+  const bandLo = new Uint8Array(n), bandMi = new Uint8Array(n), bandHi = new Uint8Array(n);
+  for (let j = 0; j < n; j++) {
+    const freq = (j < n / 2) ? j * (sampleRate / n) : (n - j) * (sampleRate / n);
+    if (freq < 300) bandLo[j] = 1;
+    else if (freq < 2000) bandMi[j] = 1;
+    else bandHi[j] = 1;
+  }
+  for (let i = 0; i + shortWin < pcm.length; i += hopSize) {
     let lo = 0, mi = 0, hi = 0;
-    const n = Math.min(fftN, shortWin);
     for (let j = 0; j < n; j++) {
-      const v = data[i + j] * data[i + j];
-      const freq = (j < n / 2) ? j * (sr / n) : (n - j) * (sr / n);
-      if (freq < 300) lo += v;
-      else if (freq < 2000) mi += v;
+      const v = pcm[i + j] * pcm[i + j];
+      if (bandLo[j]) lo += v;
+      else if (bandMi[j]) mi += v;
       else hi += v;
     }
     lowE.push(Math.sqrt(lo / n));

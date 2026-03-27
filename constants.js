@@ -257,7 +257,29 @@ presetSelect.addEventListener('change', async () => {
   try {
     const resp = await fetch(url);
     if (!resp.ok) throw new Error('HTTP ' + resp.status);
-    const blob = await resp.blob();
+    const contentLength = resp.headers.get('Content-Length');
+    let blob;
+    if (contentLength && resp.body) {
+      // Stream download with progress
+      const total = parseInt(contentLength, 10);
+      const reader = resp.body.getReader();
+      let received = 0;
+      const chunks = [];
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        chunks.push(value);
+        received += value.length;
+        const pct = Math.min(99, Math.round(received / total * 100));
+        const sizeMB = (received / 1048576).toFixed(1);
+        const totalMB = (total / 1048576).toFixed(1);
+        presetStatus.textContent = '正在加载「' + songName + '」... ' + pct + '% (' + sizeMB + '/' + totalMB + 'MB)';
+      }
+      blob = new Blob(chunks);
+    } else {
+      // Fallback: no Content-Length
+      blob = await resp.blob();
+    }
     const mimeType = url.endsWith('.mp3') ? 'audio/mpeg' : 'audio/ogg';
     audioFile = new File([blob], url, { type: mimeType });
     audioFileName = url;
