@@ -2,9 +2,9 @@
 <html lang="zh">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, viewport-fit=cover">
 <title>像素笛韵 - Pixel Rhythm</title>
-<link rel="stylesheet" href="style.css?v=56">
+<link rel="stylesheet" href="style.css?v=57">
 </head>
 <body>
 <div id="app">
@@ -166,6 +166,15 @@
     <h2 style="font-size:clamp(20px,5vw,28px);color:#feca57;margin:16px 0 12px;letter-spacing:3px;">更新日志</h2>
     <button id="changelogBackBtn" class="pixel-btn" style="margin-bottom:16px;padding:12px 40px;font-size:clamp(14px,3.5vw,18px);">返回</button>
     <div id="changelogContent" style="max-width:min(600px,90vw);width:100%;color:#c8c0e0;font-size:13px;line-height:1.7;text-align:left;padding-bottom:20px;">
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v57 — 手机横屏适配 & 进度显示</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>修复手机横屏刘海/圆角屏黑边问题（viewport-fit:cover + safe-area-inset 适配）</li>
+          <li>选歌栏右侧贴合屏幕边缘，背景图扩展至安全区外</li>
+          <li>歌曲加载进度与谱面分析进度现在显示在主界面按钮上方</li>
+          <li>移除「加载已有谱面」按钮</li>
+        </ul>
+      </div>
       <div style="margin-bottom:18px;">
         <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v56 — 主界面优化 & 封面扩充</h3>
         <ul style="padding-left:18px;margin:0;">

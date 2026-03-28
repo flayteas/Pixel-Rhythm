@@ -4,7 +4,7 @@ html, body { width:100%; height:100%; overflow:hidden; background:#1a1a2e; font-
 
 /* ============ START SCREEN — horizontal two-column default ============ */
 #startScreen { position:absolute; inset:0; display:flex; flex-direction:row; z-index:10; background:transparent; overflow:hidden; }
-#startScreenInner { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; overflow-y:auto; padding:10px 20px; position:relative; z-index:1; }
+#startScreenInner { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; overflow-y:auto; padding:10px 20px; padding-left:calc(20px + env(safe-area-inset-left, 0px)); position:relative; z-index:1; }
 #startHeader { text-align:center; flex-shrink:0; margin-bottom:6px; }
 #startBody { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; width:100%; max-width:600px; }
 #startCol1, #startCol2 { display:flex; flex-direction:column; align-items:center; width:100%; min-width:0; gap:6px; }
@@ -208,19 +208,20 @@ input[type=range]::-moz-range-thumb { width: 22px; height: 24px; background: url
 #tutDemoHint { text-align:center; color:#48dbfb; font-size:clamp(11px,2.5vw,13px); margin:4px 0 8px; min-height:20px; }
 
 /* ============ GEAR BUTTON (top-left settings) ============ */
-#gearBtn { position:absolute; top:12px; left:12px; z-index:5; background:none; border:none; cursor:pointer; padding:0; width:48px; height:48px; transition:transform .2s, filter .2s; image-rendering:pixelated; }
+#gearBtn { position:absolute; top:12px; left:calc(12px + env(safe-area-inset-left, 0px)); z-index:5; background:none; border:none; cursor:pointer; padding:0; width:48px; height:48px; transition:transform .2s, filter .2s; image-rendering:pixelated; }
 #gearBtn:hover { transform:rotate(30deg) scale(1.1); filter:brightness(1.3); }
 #gearBtn:active { transform:rotate(30deg) scale(0.95); }
 #gearCanvas { width:48px; height:48px; image-rendering:pixelated; display:block; }
 
 /* ============ START SCREEN BACKGROUND ============ */
-#mosaicBg{position:absolute;inset:0;z-index:0;pointer-events:none;background:url('startbg.jpg') center center/cover no-repeat #1a1a2e}
-#bgBlurOverlay{position:absolute;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 55% 65% at 40% 50%,rgba(15,12,41,.6) 0%,rgba(15,12,41,.3) 50%,transparent 100%)}
+#mosaicBg{position:absolute;top:0;bottom:0;left:calc(-1 * env(safe-area-inset-left, 0px));right:calc(-1 * env(safe-area-inset-right, 0px));z-index:0;pointer-events:none;background:url('startbg.jpg') center center/cover no-repeat #1a1a2e}
+#bgBlurOverlay{position:absolute;top:0;bottom:0;left:calc(-1 * env(safe-area-inset-left, 0px));right:calc(-1 * env(safe-area-inset-right, 0px));z-index:0;pointer-events:none;background:radial-gradient(ellipse 55% 65% at 40% 50%,rgba(15,12,41,.6) 0%,rgba(15,12,41,.3) 50%,transparent 100%)}
 #bgBlurOverlay::before{content:'';position:absolute;inset:0;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);mask-image:radial-gradient(ellipse 50% 60% at 40% 50%,#000 0%,#000 40%,transparent 70%);-webkit-mask-image:radial-gradient(ellipse 50% 60% at 40% 50%,#000 0%,#000 40%,transparent 70%)}
 
 /* ============ SONG PANEL — liquid glass ============ */
 #songPanel{
-  width:200px;flex-shrink:0;display:flex;flex-direction:column;
+  width:calc(200px + env(safe-area-inset-right, 0px));flex-shrink:0;display:flex;flex-direction:column;
+  padding-right:env(safe-area-inset-right, 0px);
   background:linear-gradient(160deg,
     rgba(48,43,99,.20) 0%,
     rgba(15,12,41,.28) 40%,
@@ -364,7 +365,7 @@ input[type=range]::-moz-range-thumb { width: 22px; height: 24px; background: url
   .song-name{font-size:9px;margin-top:3px;max-width:90px}
 }
 @media (max-height:420px) and (orientation:landscape){
-  #songPanel{width:170px}
+  #songPanel{width:calc(170px + env(safe-area-inset-right, 0px))}
   .song-card{width:110px}
   .song-cover{width:110px;height:110px}
   .song-name{max-width:110px}

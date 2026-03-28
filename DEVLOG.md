@@ -1392,6 +1392,24 @@ if (sr > 30000) {
 
 ---
 
+### v57 — 手机横屏安全区适配 & 加载/分析进度显示
+
+**功能概述**: 修复刘海屏/圆角屏手机横屏黑边问题，将歌曲加载与谱面分析进度从隐藏区域移至主界面可见位置。
+
+- viewport meta 添加 `viewport-fit=cover`，允许页面扩展至安全区（刘海/圆角）
+- `#mosaicBg` 和 `#bgBlurOverlay` 使用负 `env(safe-area-inset-left/right)` 向两侧扩展，消除左右黑边
+- `#songPanel` 宽度加 `env(safe-area-inset-right)` 并添加右侧 padding，贴合右边缘且内容不被遮挡
+- `#startScreenInner` 左侧 padding 加 `env(safe-area-inset-left)`，防止内容被刘海遮挡
+- `#gearBtn` left 位置加 `env(safe-area-inset-left)`，齿轮按钮不被刘海遮挡
+- 新增 `#loadStatus` 元素，位于难度/速度选项与开始按钮之间，显示歌曲加载进度和谱面分析进度
+- 重构 `constants.js` 状态显示：新增 `setStatus()` / `setAnalysisStatus()` 辅助函数，同步写入隐藏 `#presetStatus` 和可见 `#loadStatus`
+- 移除 `#loadChartBtn` HTML 元素（JS 已有 null guard）
+- CSS 版本从 v=56 升至 v=57
+
+**修改文件**: `index.html`（viewport-fit + #loadStatus 元素 + 移除 loadChartBtn + 更新日志 + CSS v57）、`style.css`（safe-area-inset 适配 + #loadStatus 样式 + 背景/面板/齿轮安全区扩展）、`constants.js`（setStatus/setAnalysisStatus 辅助函数 + 全部状态输出改用新函数）
+
+---
+
 ## 开发与部署工作流
 
 > 本节面向协作开发者/AI agent，描述项目的开发模式和部署链路。
