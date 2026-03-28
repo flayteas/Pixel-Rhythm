@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, viewport-fit=cover">
+<title>像素笛韵 - Pixel Rhythm</title>
+<link rel="stylesheet" href="style.css?v=60">
+</head>
+<body>
+<div id="app">
+  <div id="startScreen">
+  <div id="mosaicBg"></div>
+  <div id="bgBlurOverlay"></div>
+  <div id="startScreenInner">
+    <button id="gearBtn" title="设置"><canvas id="gearCanvas" width="64" height="64"></canvas></button>
+    <div id="startHeader">
+      <h1 id="gameTitle">像素笛韵</h1>
+      <p id="subtitle">Pixel Rhythm</p>
+    </div>
+    <div id="startBody">
+      <div id="startCol1">
+        <div id="presetArea" style="display:none;">
+          <label style="color:#e0c3fc;font-size:clamp(13px,3vw,16px);">&#127926; 内置音乐:
+            <select id="presetSelect" style="font-family:inherit;font-size:14px;padding:6px 12px;background:#302b63;color:#fff;border:2px solid #9b59b6;border-radius:0;cursor:pointer;margin-left:6px;">
+              <option value="">-- 请选择 --</option>
+              <optgroup label="司南的歌">
+                <option value="assets/music/大梦零落.mp3">大梦零落</option>
+                <option value="assets/music/preset.mp3">拜无忧</option>
+                <option value="assets/music/逆流雨.mp3">逆流雨</option>
+                <option value="assets/music/过期凤梨.mp3">过期凤梨</option>
+                <option value="assets/music/南风说.mp3">南风说</option>
+                <option value="assets/music/苏东坡.mp3">苏东坡</option>
+                <option value="assets/music/你相信平行时空吗.mp3">你相信平行时空吗</option>
+                <option value="assets/music/到此一游.mp3">到此一游</option>
+                <option value="assets/music/尔尔.mp3">尔尔</option>
+                <option value="assets/music/星星在唱歌.mp3">星星在唱歌</option>
+                <option value="assets/music/思有邪.mp3">思有邪</option>
+                <option value="assets/music/吹灭小山河.mp3">吹灭小山河</option>
+                <option value="assets/music/sonder.mp3">sonder</option>
+                <option value="assets/music/一拜天地.mp3">一拜天地</option>
+                <option value="assets/music/一晃又一年.mp3">一晃又一年</option>
+                <option value="assets/music/一程山路.mp3">一程山路</option>
+                <option value="assets/music/一纸山河.mp3">一纸山河</option>
+                <option value="assets/music/不如化身刺猬.mp3">不如化身刺猬</option>
+                <option value="assets/music/东风志.mp3">东风志</option>
+                <option value="assets/music/予梦.mp3">予梦</option>
+                <option value="assets/music/人间不值得.mp3">人间不值得</option>
+                <option value="assets/music/你即银河.mp3">你即银河</option>
+                <option value="assets/music/你是被爱的.mp3">你是被爱的</option>
+                <option value="assets/music/冬愿.mp3">冬愿</option>
+                <option value="assets/music/冬眠.mp3">冬眠</option>
+                <option value="assets/music/出发.mp3">出发</option>
+                <option value="assets/music/勾指起誓.mp3">勾指起誓</option>
+                <option value="assets/music/千秋此意.mp3">千秋此意</option>
+                <option value="assets/music/双生.mp3">双生</option>
+                <option value="assets/music/双面你我.mp3">双面你我</option>
+                <option value="assets/music/和风赴你.mp3">和风赴你</option>
+                <option value="assets/music/唯一的苹果.mp3">唯一的苹果</option>
+                <option value="assets/music/喧嚣.mp3">喧嚣</option>
+                <option value="assets/music/圣贤书.mp3">圣贤书</option>
+                <option value="assets/music/天光.mp3">天光</option>
+                <option value="assets/music/天和山雨雪.mp3">天和山雨雪</option>
+                <option value="assets/music/天空.mp3">天空</option>
+                <option value="assets/music/夭娘.mp3">夭娘</option>
+                <option value="assets/music/奔赴.mp3">奔赴</option>
+                <option value="assets/music/如此漫长一生.mp3">如此漫长一生</option>
+                <option value="assets/music/守在圆地爱你.mp3">守在圆地爱你</option>
+                <option value="assets/music/寄给月亮的梦.mp3">寄给月亮的梦</option>
+                <option value="assets/music/小女司南.mp3">小女司南</option>
+                <option value="assets/music/岁方秋.mp3">岁方秋</option>
+                <option value="assets/music/应怀酒.mp3">应怀酒</option>
+                <option value="assets/music/引路星.mp3">引路星</option>
+                <option value="assets/music/我的悲伤是水做的.mp3">我的悲伤是水做的</option>
+                <option value="assets/music/我还记得.mp3">我还记得</option>
+                <option value="assets/music/捉迷藏.mp3">捉迷藏</option>
+                <option value="assets/music/摇橹食光.mp3">摇橹食光</option>
+                <option value="assets/music/故里小月光.mp3">故里小月光</option>
+                <option value="assets/music/时间会回答.mp3">时间会回答</option>
+                <option value="assets/music/星川.mp3">星川</option>
+                <option value="assets/music/星河万里.mp3">星河万里</option>
+                <option value="assets/music/春三月.mp3">春三月</option>
+                <option value="assets/music/春不晚.mp3">春不晚</option>
+                <option value="assets/music/春日信笺.mp3">春日信笺</option>
+                <option value="assets/music/梦与星海之间.mp3">梦与星海之间</option>
+                <option value="assets/music/梨园小记.mp3">梨园小记</option>
+                <option value="assets/music/比风更轻的灵魂.mp3">比风更轻的灵魂</option>
+                <option value="assets/music/江湖行客.mp3">江湖行客</option>
+                <option value="assets/music/泪的告白.mp3">泪的告白</option>
+                <option value="assets/music/清零.mp3">清零</option>
+                <option value="assets/music/游侠不是侠.mp3">游侠不是侠</option>
+                <option value="assets/music/烟火焚.mp3">烟火焚</option>
+                <option value="assets/music/烟雨行舟.mp3">烟雨行舟</option>
+                <option value="assets/music/烟雨行舟新.mp3">烟雨行舟新</option>
+                <option value="assets/music/白驹.mp3">白驹</option>
+                <option value="assets/music/离忧.mp3">离忧</option>
+                <option value="assets/music/秋风词.mp3">秋风词</option>
+                <option value="assets/music/絮咏歌.mp3">絮咏歌</option>
+                <option value="assets/music/苏州人家.mp3">苏州人家</option>
+                <option value="assets/music/蜕.mp3">蜕</option>
+                <option value="assets/music/谓风.mp3">谓风</option>
+                <option value="assets/music/逃不掉.mp3">逃不掉</option>
+                <option value="assets/music/长大就好.mp3">长大就好</option>
+                <option value="assets/music/风过谢桃花.mp3">风过谢桃花</option>
+                <option value="assets/music/飞舟.mp3">飞舟</option>
+                <option value="assets/music/飞花入瑟.mp3">飞花入瑟</option>
+                <option value="assets/music/飞鸟来信.mp3">飞鸟来信</option>
+              </optgroup>
+              <optgroup label="内置曲目">
+                <option value="assets/music/escaping_gravity.mp3">Escaping Gravity</option>
+              </optgroup>
+            </select>
+          </label>
+          <p id="presetStatus" style="display:none;"></p>
+        </div>
+        <p id="divider" style="display:none;">-- 或 --</p>
+        <div id="uploadArea">
+          <label for="audioInput" id="uploadLabel">&#127925; 选择本地音乐</label>
+          <input type="file" id="audioInput" accept="audio/*">
+          <p id="fileName"></p>
+        </div>
+        <p id="hint" style="display:none;">支持 MP3 / WAV / OGG | 左右点击 ASDF / HJKL</p>
+        <p id="hint2" style="display:none;">弧形判定线 | 勺尖越近判定越好(P>G>H)</p>
+      </div>
+      <div id="startCol2">
+        <div id="optionsRow">
+          <label>难度:
+            <select id="diffSelect">
+              <option value="easy">Easy</option>
+              <option value="normal" selected>Normal</option>
+              <option value="hard">Hard</option>
+              <option value="expert">Expert</option>
+            </select>
+          </label>
+          <label>音符速度:
+            <input type="range" id="speedSlider" min="1.0" max="5.0" step="0.05" value="2.8" style="vertical-align:middle;width:100px;accent-color:#9b59b6;">
+            <span id="speedVal" style="display:inline-block;min-width:48px;text-align:center;">2.8s</span>
+          </label>
+        </div>
+        <p id="loadStatus"></p>
+        <div id="mainActions">
+          <button id="startBtn" class="pixel-btn" disabled>开始游戏</button>
+        </div>
+        <div id="secondaryActions">
+          <button id="fullscreenBtn" class="pixel-btn">全屏游玩</button>
+        </div>
+        <div id="utilActions">
+          <button id="recordsBtn" class="pixel-btn">成绩记录</button>
+          <button id="cloudSyncBtn" class="pixel-btn" onclick="CloudSync.showSyncDialog()">☁ 云同步</button>
+          <button id="leaderboardHomeBtn" class="pixel-btn" onclick="CloudSync.showLeaderboard()">排行榜</button>
+          <button id="tutorialBtn" class="pixel-btn">教程</button>
+          <button id="changelogBtn" class="pixel-btn">更新日志</button>
+        </div>
+        <div id="cloudStatus" style="font-size:11px;min-height:16px;text-align:center;margin-top:2px;color:#feca57;"></div>
+      </div>
+    </div>
+  </div>
+  <div id="songPanel">
+    <div class="panel-inner-glow"></div>
+    <div class="panel-header">
+      <span class="note-icon">♪</span>
+      <h2>选 曲</h2>
+      <div class="count" id="songCount"></div>
+    </div>
+    <div class="song-scroll" id="songScroll"></div>
+  </div>
+  </div>
+  <div id="songToast"></div>
+  <!-- Changelog Overlay -->
+  <div id="changelogOverlay" style="position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:flex-start;z-index:15;background:rgba(15,12,41,0.97);overflow-y:auto;padding:20px;">
+    <h2 style="font-size:clamp(20px,5vw,28px);color:#feca57;margin:16px 0 12px;letter-spacing:3px;">更新日志</h2>
+    <button id="changelogBackBtn" class="pixel-btn" style="margin-bottom:16px;padding:12px 40px;font-size:clamp(14px,3.5vw,18px);">返回</button>
+    <div id="changelogContent" style="max-width:min(600px,90vw);width:100%;color:#c8c0e0;font-size:13px;line-height:1.7;text-align:left;padding-bottom:20px;">
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v60 — 新歌「大梦零落」& 选歌栏性能优化</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>新增司南新歌「大梦零落」，选歌栏置顶并标注金色「★ 司南新歌 ★」徽章</li>
+          <li>启动时不再自动加载第一首歌，节省流量</li>
+          <li>选歌栏毛玻璃效果改为预模糊背景图方案，滚动零卡顿</li>
+          <li>精简卡片动画与阴影层数，提升手机端滚动帧率</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v57 — 手机横屏适配 & 进度显示</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>修复手机横屏刘海/圆角屏黑边问题（viewport-fit:cover + safe-area-inset 适配）</li>
+          <li>选歌栏右侧贴合屏幕边缘，背景图扩展至安全区外</li>
+          <li>歌曲加载进度与谱面分析进度现在显示在主界面按钮上方</li>
+          <li>移除「加载已有谱面」按钮</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v56 — 主界面优化 & 封面扩充</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>设置入口改为左上角 64×64 像素风齿轮图标，悬停旋转发光</li>
+          <li>镜像功能、调试面板入口整合进设置页面内部，主界面更简洁</li>
+          <li>移除「加载已有谱面」按钮，精简主界面按钮数量</li>
+          <li>统一所有主界面按钮大小，三层按钮（主操作/次要/工具栏）通过 CSS 统一控制</li>
+          <li>新增 74 首歌曲封面图（256×256 JPG 压缩，4~18KB），选曲面板视觉大幅提升</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v55 — 开始界面背景 & 封面优化</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>开始界面背景替换为照片墙（startbg.jpg），按钮区域局部高斯模糊突出焦点</li>
+          <li>使用 mask-image + radial-gradient 实现椭圆形渐变模糊，边缘保持清晰</li>
+          <li>移除歌曲封面上的 CRT 扫描线叠加效果（.song-cover::after）</li>
+          <li>新增独立 #bgBlurOverlay 层解决 backdrop-filter 与 z-index 堆叠上下文冲突</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v54 — 选曲面板 & 开始界面视觉重做</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>新增右侧选曲面板：液态玻璃毛玻璃效果，垂直滚动卡片列表，点击选歌并触发加载</li>
+          <li>歌曲封面自动生成：基于歌名哈希的渐变色 + 首字大字，支持自定义封面图（如「引路星」）</li>
+          <li>选中卡片金色发光边框 + 缩放动画，底部 toast 提示已选歌曲</li>
+          <li>背景替换为像素棋盘格马赛克，canvas 生成 12×8 像素纹理，CSS pixelated 放大平铺，不随窗口拉伸</li>
+          <li>开始界面布局改为居中单列，按钮分组更均衡；标题白色描边加粗；文字颜色和阴影优化适配暖色背景</li>
+          <li>窄屏/竖屏响应式：选曲面板移至底部改为横向滚动，卡片自动缩小</li>
+          <li>封面图压缩优化：原图 PNG 缩至 256×256 JPG（~32KB），加速加载</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v53 — 本地成绩记录系统</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>新增「成绩记录」页面：按难度查看所有歌曲的最高分、最大连击、判定分布（P/G/H/M），已游玩按分数排序，未游玩灰色显示</li>
+          <li>结算界面新增历史最佳对比（分差 +/-），刷新记录时显示 NEW RECORD! 徽章</li>
+          <li>全连（FC）歌曲在下拉列表中显示金色 ★FC 标识，标注达成的最高难度</li>
+          <li>记录存储在本地 localStorage，每首歌每个难度独立保存，支持游玩次数统计</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v52 — Perfect 音效替换 & 歌曲加载进度 & 音频分析加速</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>Perfect 音效从「星爆」替换为清脆的「叮」声（2200Hz 钟鸣 + 3Hz 拍频微光，0.22s）</li>
+          <li>音效加载方式从 base64 内嵌改为外部 WAV 文件 fetch 加载，constants.js 体积减小约 40%</li>
+          <li>内置歌曲加载新增实时进度显示：百分比 + 已下载/总大小 MB（通过 ReadableStream 流式读取）</li>
+          <li>音频分析性能优化约 3~4 倍：高采样率音频自动降采样至 ~22kHz、hop size 翻倍、预计算频段查找表、内联梳状滤波器消除逐帧内存分配</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v51 — 全屏强制横屏 & 移动端布局优化 & 长键对侧音符精简</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>全屏模式支持强制横屏：优先使用原生 screen.orientation.lock API，不支持时自动 CSS 旋转兜底（兼容 iOS Safari）</li>
+          <li>开始界面默认改为双列横向布局，移动端横屏下所有按钮一屏可见，无需滚动</li>
+          <li>窄屏竖屏（≤520px）自动回退单列布局；极矮屏幕（≤360px）隐藏副标题和提示文字以节省空间</li>
+          <li>长键对侧短键精简：注入间距从半拍提升至全拍级别，候选点限制为节拍网格对齐，数量上限为 hold 时长内的整拍数</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v50 — 倒计时预览 & 双押修复 & 代码拆分</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>开始游戏三秒倒计时期间音符提前生成并飞行，可提前预判节奏</li>
+          <li>修复局内重来后双押连线消失的问题（重来时保留双押标记）</li>
+          <li>修复超出上限的双押取消后仍保留对齐时间的问题：现在恢复为原始生成时间，注入的镜像音符直接移除</li>
+          <li>修复长键对侧短键不跟节奏的问题：对侧音符优先对齐已检测的节拍网格，无网格覆盖时回退到BPM等分步进</li>
+          <li>代码结构重构：单文件拆分为 8 个文件（style.css / constants.js / audio.js / notes.js / render.js / tutorial.js / debug.js），便于维护</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v49 — 双押分布均匀化 & 教程扩充</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>修复双押集中在歌曲开头的问题：注入改为按时间等间距均匀分布</li>
+          <li>弧形连线仅在音符接近判定区（progress > 45%）时平滑淡入</li>
+          <li>教程新增长键（Hold）和双押（Dual）操作说明</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v48 — 双押连线 & 光晕 & 上限修复</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>双押连线改为弧形曲线，不再贯穿整个屏幕</li>
+          <li>配对一侧被判定后，剩余音符金色光晕快速闪烁淡出（300ms）</li>
+          <li>特殊键上限改为按歌曲时长比例计算（基础值 × 分钟数），长歌不再被过度裁切</li>
+          <li>新增设置本地持久化，所有设置自动保存/恢复</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v47 — 密度提升 & 特殊键上限</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>各难度基础音符密度提升（Easy 1.4 / Normal 1.7 / Hard 2.3 / Expert 3.2）</li>
+          <li>新增长键和双押数量上限（按难度限制），超出自动拆回普通音符或取消双押</li>
+          <li>双押注入率减半，配合上限兜底控制特殊键比例</li>
+          <li>调试面板新增长键/双押对数统计及上限显示</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v46 — Expert 难度 & 双押调整</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>新增 Expert（专家）难度：音符密度为 Hard 的 1.5 倍，判定窗口最严格</li>
+          <li>双押检测倍率（大于 1 的部分）减半，降低过度双押</li>
+          <li>长键（hold）期间不再出现双押，避免操作冲突</li>
+          <li>双押默认阈值 120ms，各难度按倍率缩放检测窗口</li>
+          <li>Expert 允许连续短长键交替，双押比率最高（40%）</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v45 — 安静前奏节拍检测修复</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>修复安静前奏（如「思有邪」）前十余秒无音符的问题</li>
+          <li>按段落局部自适应增强频谱通量，安静段不再被全局峰值淹没</li>
+          <li>降低 Intro 段检测阈值，首音符前自动填充合成音符</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v44 — 双押优化</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>移除双押阈值滑块，阈值固定 80ms</li>
+          <li>双押音符向上偏移，与普通单键高低错落区分</li>
+          <li>双押配对自动时间对齐，确保完全同步到达</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v43 — Perfect 击打音效</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>Perfect 判定时播放 Star Burst 星爆音效</li>
+          <li>设置面板新增「Perfect音效」音量滑块</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v42 — 双押键视觉区分</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>自动检测同时到达的左右音符对，标记为双押</li>
+          <li>双押键显示金色光晕，两键间绘制金色虚线连线</li>
+          <li>普通单键增加随机高低错落，双押键保持水平对齐</li>
+          <li>设置面板可开关双押特效</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v41 — FC 动画修复</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>全连角色动画改为柔和摇摆+弹跳，替代旋转</li>
+          <li>修复横屏模式下 FULL COMBO 文字偏移问题</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v40 — 新手教程</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>新增游戏教程系统，含操作说明和互动演示</li>
+          <li>6 个练习音符，独立于主游戏</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v39 — 全连动画 & UI 改进</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>全连（无 Miss）时角色庆祝动画 3 秒</li>
+          <li>结束页面显示难度和音符速度信息</li>
+          <li>速度滑条范围扩展至 1.0s ~ 5.0s</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v38 — 曲库扩充</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>新增「司南的歌」分组，收录 68 首歌曲</li>
+          <li>全部音频压缩为 64kbps MP3</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v37 — 长键尾判开关</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>设置面板新增「长键尾判」复选框</li>
+          <li>关闭后长键结尾自动判定为 Perfect</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v36 — 长键计分回归 & 对侧音符注入</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>长键计分改回与普通音符一致，不再因合并数量额外加分</li>
+          <li>新增管线阶段 injectOppositeNotes：长键持续期间在对侧自动注入短键</li>
+          <li>注入密度基于 BPM，与长键首尾保持安全边距</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v35 — 视觉优化三项</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>背景叠加半透明暗化遮罩，降低刺眼感</li>
+          <li>长键失败时显示红色收缩淡出特效 + 红色粒子爆发</li>
+          <li>结束界面显示当前歌曲名称</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v34 — 音频分析迁移至 Web Worker</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>CPU 密集型节拍检测移至 Web Worker，消除分析时 UI 卡顿</li>
+          <li>分析过程显示进度条和阶段文字</li>
+          <li>主线程保留副本供调试面板使用</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v33 — 渲染性能优化</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>判定弧光晕计算从 O(n) 降至 O(n/2)，按方向分桶预计算最近距离</li>
+          <li>Note/HoldNote 预缓存三角函数值，消除热路径中的 Math.cos/sin 调用</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v32 — 对象池优化</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>新增通用 ObjectPool 类，复用 Note / HoldNote / Particle 对象</li>
+          <li>减少 GC 压力，提升帧率稳定性</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v31 — 音效节流 & 代码清理</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>多点触控同帧音效去重（30ms 节流）</li>
+          <li>清理无用全局变量（comboOrbs、pauseTimeOffset 等）</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v30 — 长键分数重设</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>长键保留合并 tap 数量并给予 1.1x 倍率奖励</li>
+          <li>起始和结束判定各得一半分数</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v29 — UI 重构 & 镜像模式</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>主界面精简，高级选项移入独立设置面板</li>
+          <li>新增镜像（左右反转）模式，翻转所有音符方向</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v28 — 密集段方向全局平衡</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>密集段统一方向时参考全局 L/R 累计数量，避免大量音符堆积同侧</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v27 — 局内重开长键丢失修复</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>修复 replayGame 复制 beats 时丢失 hold 类型信息的问题</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v26 — 击中音效改为即时触发</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>点击/触摸/按键时立即播放音效，无论是否命中音符</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v25 — 音符速度滑条</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>开始界面新增「音符速度」滑条（1.5s~4.0s），可自定义飞行速度</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v24 — 长键默认开启</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>长键功能默认开启，合并阈值调至 350ms</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v23 — 谱面缓存联动修复</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>修复缓存 key 不含 hold 状态导致长键永远不出现的问题</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v22 — 长键渲染修复</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>修复长键因尾部 progress 过小导致整个长键不可见的 bug</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v21 — 密集段方向统一</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>新增 unifyDenseDirections：将密集区间音符统一为多数方向</li>
+          <li>解决交替方向导致长键无法合并的问题</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v20 — 合并相邻长键</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>同侧长键间隔 ≤0.3s 时自动合并为一个连贯长键</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v19 — 长键边界扩展</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>长键自动吸收前后紧邻的同侧普通键，减少交替感</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v18 — 里程碑显示延长</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>连击成就文字显示时间延长至 ~1.5s，上浮速度减缓</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v17 — 长键系统（实验性）</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>密集段同侧连续 ≥3 个音符自动合并为长按音符</li>
+          <li>按住期间显示金色光晕，尾端闪烁提示松手时机</li>
+          <li>支持多指触控独立追踪，键盘 Space/左右键操作</li>
+          <li>谱面存储兼容旧格式</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v16 — 暂停恢复倒计时</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>暂停恢复时 3→2→1→GO! 倒计时缓冲</li>
+          <li>倒计时期间音符静止、输入屏蔽</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v15 — 内置音乐分栏</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>新建「司南的歌」分组，首批 4+6 首歌曲</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v14 — 音符方向分配优化</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>基于低/中/高频段能量决定音符方向（鼓→左，旋律→右）</li>
+          <li>全局 L/R 平衡计数器 + 连续同向上限 3 个</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v13 — 像素风格 UI</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>全部按钮替换为像素材质（button.png）</li>
+          <li>滑块拖动图标替换为南瓜图案（slider-thumb.png）</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v12 — 多点触控优化</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>批处理架构：同帧触摸点统一处理，防止同音符被两指命中</li>
+          <li>鼠标/触摸去重，解决混合设备双重事件</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v11 — 动态视觉反馈</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>判定弧根据最近音符距离动态高亮（白→红渐变）</li>
+          <li>音符接近时径向光晕（左蓝/右红）+ 金色暖光</li>
+          <li>完美点指示器：弧线上白色脉冲亮点</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v10 — 音符延迟默认 -60ms</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>音符提前 60ms 出现，给玩家额外反应余量</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v9 — 减慢音符飞行速度</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>基础飞行时间从 2.0s 提升到 2.8s，各难度增加约 40%</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v8 — 降低判定精度要求</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>各难度判定像素阈值扩大约 1.6~1.7 倍</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v7 — 判定区域淡红光效</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>判定弧区域添加常驻红色径向渐变光晕提示</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v6 — 宽容窗口默认值调整</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>宽容窗口默认值从 50ms 调至 150ms</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v5 — 纯勺尖判定</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>判定简化为勺尖到弧线的距离，替代图像三段分区</li>
+          <li>辅助可视化改为以勺尖目标线为中心的同心距离环</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v4 — 连击动画 & 里程碑特效</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>连击计数器弹跳动画</li>
+          <li>里程碑（10/20/30/50/75/100）触发彩虹粒子 + 屏幕闪烁 + 大字上浮</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v3 — 宽容窗口（时间兜底）</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>空间判定失败时提供时间兜底，降低空挥挫败感</li>
+          <li>可设置 0~150ms 宽容范围</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v2 — 判定辅助持续显示</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>判定弧色带、边界线、P/G/H 标注统一受辅助按钮控制</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v1 — 判定系统重构</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>判定从时间窗口改为基于音符图像与弧线的空间重叠</li>
+          <li>图像内位置分三段：前 1/3 Perfect、中 1/3 Good、后 1/3 Hit</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v0 — 初始构建</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>将素材组装为可运行的 Web 音律游戏</li>
+          <li>自动镜像生成 right.png，内置「拜无忧」预设曲目</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <!-- Records Overlay -->
+  <div id="recordsOverlay" style="position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:flex-start;z-index:15;background:rgba(15,12,41,0.97);overflow-y:auto;padding:20px;">
+    <h2 style="font-size:clamp(20px,5vw,28px);color:#feca57;margin:16px 0 8px;letter-spacing:3px;">成绩记录</h2>
+    <div id="recordsDiffTabs" style="display:flex;gap:8px;margin-bottom:12px;">
+      <button class="pixel-btn rec-tab rec-tab-active" data-diff="expert" style="padding:6px 16px;font-size:13px;">Expert</button>
+      <button class="pixel-btn rec-tab" data-diff="hard" style="padding:6px 16px;font-size:13px;">Hard</button>
+      <button class="pixel-btn rec-tab" data-diff="normal" style="padding:6px 16px;font-size:13px;">Normal</button>
+      <button class="pixel-btn rec-tab" data-diff="easy" style="padding:6px 16px;font-size:13px;">Easy</button>
+    </div>
+    <div id="recordsList" style="max-width:min(640px,92vw);width:100%;padding-bottom:16px;"></div>
+    <button id="recordsBackBtn" class="pixel-btn" style="margin:12px 0 20px;padding:12px 40px;font-size:clamp(14px,3.5vw,18px);">返回</button>
+  </div>
+  <!-- Tutorial Screen -->
+  <div id="tutorialScreen">
+    <div id="tutorialTitle">游戏教程</div>
+    <div id="tutorialContent">
+      <h3>基本操作</h3>
+      <p>音符从屏幕两侧飞向中心角色。左侧音符用<span class="tut-key">A</span><span class="tut-key">S</span><span class="tut-key">D</span><span class="tut-key">F</span>或点击屏幕左半边；右侧音符用<span class="tut-key">H</span><span class="tut-key">J</span><span class="tut-key">K</span><span class="tut-key">L</span>或点击右半边。<span class="tut-key">空格</span>自动匹配最近音符。</p>
+      <h3>判定系统</h3>
+      <p>判定依据是<b style="color:#ff6b6b;">勺子尖端</b>与<b style="color:#feca57;">判定弧线</b>的距离。越接近弧线，判定越高：<span style="color:#feca57;">Perfect</span> > <span style="color:#48dbfb;">Good</span> > <span style="color:#2ecc71;">Hit</span>。完全错过则为 <span style="color:#ff4444;">Miss</span>。</p>
+      <h3>长键 (Hold)</h3>
+      <p>密集音符会合并为<b style="color:#e67e22;">长键</b>（渐变色带）。在起始端到达判定弧时<b>按下并按住不放</b>，直到尾端到达判定弧时松开。起始和结束各有一次判定。</p>
+      <p style="color:#aaa;font-size:0.9em;">提示：可在设置中开关「长键尾判」——关闭后松手时机不影响判定，尾端自动 Perfect。</p>
+      <h3>双押 (Dual)</h3>
+      <p>带有<b style="color:#feca57;">金色光晕</b>的音符为双押——左右两侧各有一个音符同时到达，需要<b>同时点击两侧</b>。接近判定区时会出现<span style="color:#feca57;">金色弧线</span>连接两个音符。</p>
+      <p style="color:#aaa;font-size:0.9em;">键盘操作：左手任意键 + 右手任意键同时按下即可。触屏操作：双手同时点击屏幕左右两半。</p>
+      <h3>试试看</h3>
+      <p>点击下方的"开始演示"体验基本操作。共 6 个音符，左右交替飞来，试着在它们到达弧线时点击对应侧！</p>
+    </div>
+    <div class="tut-demo-area">
+      <canvas id="tutCanvas" width="560" height="320"></canvas>
+    </div>
+    <p id="tutDemoStatus"></p>
+    <p id="tutDemoHint"></p>
+    <div style="display:flex;gap:10px;margin:8px 0 16px;">
+      <button id="tutStartDemo" class="pixel-btn" style="padding:10px 28px;font-size:clamp(13px,3vw,16px);">开始演示</button>
+      <button id="tutBackBtn" class="pixel-btn" style="padding:10px 28px;font-size:clamp(13px,3vw,16px);">返回主页</button>
+    </div>
+  </div>
+  <!-- Settings Overlay -->
+  <div id="settingsOverlay" style="position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;z-index:12;background:rgba(15,12,41,0.97);">
+    <h2 style="font-size:clamp(22px,5vw,32px);color:#ff6b6b;margin-bottom:16px;letter-spacing:4px;">设置</h2>
+    <div id="settingsGrid" style="display:grid;grid-template-columns:auto auto;gap:12px 28px;align-items:center;justify-content:center;max-width:90vw;">
+      <label>音符延迟:
+        <input type="range" id="offsetSlider" min="-100" max="100" value="-60" step="5" style="vertical-align:middle;width:100px;accent-color:#9b59b6;">
+        <span id="offsetVal" style="display:inline-block;min-width:48px;text-align:center;">-60ms</span>
+      </label>
+      <label>打击音量:
+        <input type="range" id="hitVolSlider" min="0" max="100" value="50" step="5" style="vertical-align:middle;width:80px;accent-color:#e74c3c;">
+        <span id="hitVolVal" style="display:inline-block;min-width:36px;text-align:center;">50%</span>
+      </label>
+      <label style="cursor:pointer;">
+        <input type="checkbox" id="guideDots" style="accent-color:#e74c3c;vertical-align:middle;"> 判定区域辅助
+      </label>
+      <label>Perfect音效:
+        <input type="range" id="perfectVolSlider" min="0" max="100" value="60" step="5" style="vertical-align:middle;width:80px;accent-color:#feca57;">
+        <span id="perfectVolVal" style="display:inline-block;min-width:36px;text-align:center;">60%</span>
+      </label>
+      <label>宽容窗口:
+        <input type="range" id="leniencySlider" min="0" max="150" value="150" step="5" style="vertical-align:middle;width:80px;accent-color:#e67e22;">
+        <span id="leniencyVal" style="display:inline-block;min-width:42px;text-align:center;">150ms</span>
+      </label>
+      <label style="cursor:pointer;">
+        <input type="checkbox" id="enableHold" checked style="accent-color:#e67e22;vertical-align:middle;"> 长键
+      </label>
+      <label style="cursor:pointer;">
+        <input type="checkbox" id="holdTailJudge" checked style="accent-color:#e67e22;vertical-align:middle;"> 长键尾判
+      </label>
+      <label>合并阈值:
+        <input type="range" id="mergeThreshSlider" min="100" max="400" value="350" step="10" style="vertical-align:middle;width:80px;accent-color:#e67e22;">
+        <span id="mergeThreshVal" style="display:inline-block;min-width:42px;text-align:center;">350ms</span>
+      </label>
+      <label>最短长键:
+        <input type="range" id="holdMinSlider" min="200" max="800" value="400" step="50" style="vertical-align:middle;width:80px;accent-color:#e67e22;">
+        <span id="holdMinVal" style="display:inline-block;min-width:42px;text-align:center;">400ms</span>
+      </label>
+      <label style="cursor:pointer;">
+        <input type="checkbox" id="dualEffect" checked style="accent-color:#feca57;vertical-align:middle;"> 双押特效
+      </label>
+      <label style="cursor:pointer;">
+        <input type="checkbox" id="mirrorCheck" style="accent-color:#9b59b6;vertical-align:middle;"> 镜像（左右反转）
+      </label>
+    </div>
+    <div style="display:flex;gap:12px;margin-top:20px;align-items:center;">
+      <button id="settingsBackBtn" class="pixel-btn" style="padding:12px 40px;font-size:clamp(14px,3.5vw,18px);">返回</button>
+      <button id="debugBtn" class="pixel-btn" style="padding:12px 28px;font-size:clamp(12px,3vw,15px);">调试面板</button>
+    </div>
+  </div>
+  <canvas id="gameCanvas" tabindex="0"></canvas>
+  <div id="uiOverlay" style="display:none;">
+    <div id="scoreDisplay" class="ui-pop">得分: <span id="scoreVal">0</span></div>
+    <button id="pauseBtn" style="background:none;border:2px solid rgba(255,255,255,0.5);color:#fff;font-family:inherit;font-size:16px;padding:2px 10px;cursor:pointer;pointer-events:auto;border-radius:4px;line-height:1.2;">||</button>
+    <div id="comboDisplay" class="ui-pop">连击: <span id="comboVal">0</span></div>
+  </div>
+  <div id="endScreen" style="display:none;">
+    <h2>演奏结束</h2>
+    <p id="songNameDisplay" style="color:#e0c3fc;font-size:16px;margin:4px 0 10px;"></p>
+    <p id="endDiffInfo" style="color:#9b9ecf;font-size:14px;margin:2px 0 8px;"></p>
+    <p id="fullComboText" style="display:none;color:#feca57;font-size:clamp(20px,5vw,32px);font-weight:bold;text-shadow:0 0 12px #feca57,0 0 24px #e67e22;margin:6px 0 10px;letter-spacing:4px;">FULL COMBO!</p>
+    <p>最终得分: <span id="finalScore">0</span></p>
+    <p>最大连击: <span id="maxCombo">0</span></p>
+    <p>Perfect: <span id="perfectCount">0</span> | Good: <span id="goodCount">0</span> | Hit: <span id="hitCount">0</span> | Miss: <span id="missCount">0</span></p>
+    <p id="recordCompare" style="display:none;color:#feca57;font-size:14px;margin:6px 0;"></p>
+    <p id="newRecordBadge" style="display:none;color:#ff6b6b;font-size:clamp(16px,4vw,22px);font-weight:bold;text-shadow:0 0 8px #ff6b6b;margin:4px 0;letter-spacing:2px;">NEW RECORD!</p>
+    <button id="endReplayBtn" class="pixel-btn">再来一次</button>
+    <button id="leaderboardBtn" class="pixel-btn" onclick="CloudSync.showLeaderboard()">排行榜</button>
+    <button id="restartBtn" class="pixel-btn">返回主页</button>
+  </div>
+  <div id="pauseOverlay">
+    <h2>暂停</h2>
+    <button id="pauseResumeBtn" class="pixel-btn">继续</button>
+    <button id="pauseRetryBtn" class="pixel-btn">重来</button>
+    <button id="pauseExitBtn" class="pixel-btn">退出</button>
+  </div>
+  <!-- Debug/Calibration Panel -->
+  <div id="debugPanel">
+    <div class="dp-header">
+      <h3>调试 / 校准面板</h3>
+      <button class="dp-close" id="debugClose">&times;</button>
+    </div>
+    <div class="dp-body">
+      <p id="dbgNoAudioHint">请先在开始界面选择音乐，再打开调试面板</p>
+      <div class="dp-section">
+        <h4>音频波形 &amp; 节拍点</h4>
+        <p class="dp-hint">拖拽滚动 | 滚轮/按钮缩放 | 选择模式后点击波形编辑节拍点</p>
+        <div class="dp-btnrow" style="margin-bottom:4px;">
+          <button class="dp-btn dp-btn-secondary" id="wfAddBeatBtn">添加节拍</button>
+          <button class="dp-btn dp-btn-secondary" id="wfDelBeatBtn">删除节拍</button>
+        </div>
+        <div id="waveformWrap">
+          <canvas id="waveformCanvas"></canvas>
+          <div class="wf-zoom">
+            <button id="wfZoomIn">+</button>
+            <button id="wfZoomOut">-</button>
+          </div>
+        </div>
+      </div>
+      <div class="dp-section">
+        <h4>BPM &amp; 谱面信息</h4>
+        <div id="bpmStats" class="dp-stats">
+          BPM: <span id="dbgBPM">--</span> |
+          节拍间隔: <span id="dbgBeatInt">--</span>ms<br>
+          音符总数: <span id="dbgNoteCount">--</span> |
+          左侧: <span id="dbgLeftCount">--</span> |
+          右侧: <span id="dbgRightCount">--</span><br>
+          时长: <span id="dbgDuration">--</span>s |
+          密度: <span id="dbgDensity">--</span> notes/s<br>
+          长键: <span id="dbgHoldCount">--</span> |
+          双押对: <span id="dbgDualCount">--</span><br>
+          段落: <span id="dbgSections">--</span>
+        </div>
+      </div>
+      <div class="dp-section">
+        <h4>参数调节</h4>
+        <div class="dp-row">
+          <label>Onset阈值</label>
+          <input type="range" id="dbgOnsetThresh" min="0.5" max="3.0" step="0.1" value="1.5">
+          <span class="val" id="dbgOnsetThreshVal">1.5</span>
+        </div>
+        <div class="dp-row">
+          <label>最小间隔(ms)</label>
+          <input type="range" id="dbgMinGap" min="100" max="600" step="10" value="200">
+          <span class="val" id="dbgMinGapVal">200</span>
+        </div>
+        <div class="dp-row">
+          <label>Burst间隔(ms)</label>
+          <input type="range" id="dbgBurstGap" min="100" max="500" step="10" value="200">
+          <span class="val" id="dbgBurstGapVal">200</span>
+        </div>
+        <div class="dp-row">
+          <label>最大Burst数</label>
+          <input type="range" id="dbgMaxBurst" min="1" max="12" step="1" value="5">
+          <span class="val" id="dbgMaxBurstVal">5</span>
+        </div>
+        <div class="dp-row">
+          <label>密度乘数</label>
+          <input type="range" id="dbgDensityMult" min="0.5" max="4.0" step="0.1" value="1.7">
+          <span class="val" id="dbgDensityMultVal">1.3</span>
+        </div>
+        <div class="dp-btnrow">
+          <button class="dp-btn dp-btn-primary" id="dbgRegenBtn">重新生成谱面</button>
+          <button class="dp-btn dp-btn-secondary" id="dbgExportBtn">导出谱面</button>
+          <button class="dp-btn dp-btn-secondary" id="dbgImportBtn">导入谱面</button>
+          <input type="file" id="dbgImportFile" accept=".json" style="display:none;">
+        </div>
+        <span id="dbgRegenStatus" style="font-size:11px;color:#2ecc71;margin-top:4px;display:block;min-height:16px;"></span>
+      </div>
+      <div class="dp-section">
+        <h4>校准模式</h4>
+        <p style="font-size:11px;color:#888;margin-bottom:6px;">跟随节拍器点击/按键，测量你的输入延迟</p>
+        <div>
+          <button class="dp-btn dp-btn-secondary" id="calStartBtn">校准模式</button>
+          <button class="dp-btn dp-btn-danger" id="calStopBtn" style="display:none;">停止校准</button>
+        </div>
+        <div id="calibrationInfo">
+          <p>点击次数: <span id="calTapCount">0</span> / 16</p>
+          <p>平均偏移: <span id="calAvgOffset" class="cal-result">--</span>ms</p>
+          <p id="calInstruction" style="color:#888;">按下"校准模式"开始</p>
+        </div>
+        <div style="margin-top:6px;">
+          <button class="dp-btn dp-btn-primary" id="calApplyBtn" style="display:none;">应用偏移到延迟滑块</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="js/constants.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/notes.js"></script>
+<script src="js/render.js"></script>
+<script src="js/tutorial.js"></script>
+<script src="js/debug.js"></script>
+<script src="js/cloud.js"></script>
+<script>
+// === Song Panel: cover generation + card interaction ===
+(function(){
+  // Background is now CSS background-image (startbg.jpg), no mosaic needed
+
+  // Build song list from presetSelect options
+  var sel=document.getElementById('presetSelect');
+  var scroll=document.getElementById('songScroll');
+  var countEl=document.getElementById('songCount');
+  var toastEl=document.getElementById('songToast');
+  if(!sel||!scroll) return;
+
+  var songs=[];
+  for(var i=0;i<sel.options.length;i++){
+    var opt=sel.options[i];
+    if(opt.value) songs.push({name:opt.text,value:opt.value,index:i});
+  }
+  if(countEl) countEl.textContent=songs.length+'首';
+
+  function hashStr(s){var h=0;for(var i=0;i<s.length;i++)h=((h<<5)-h)+s.charCodeAt(i),h|=0;return Math.abs(h)}
+
+  function genCover(name,canvas){
+    var h=hashStr(name);
+    var ctx=canvas.getContext('2d');
+    var s=64;canvas.width=s;canvas.height=s;
+    var hue1=h%360,hue2=(h*7+120)%360;
+    var sat=40+(h%30);
+    var g=ctx.createLinearGradient(0,0,s,s);
+    g.addColorStop(0,'hsl('+hue1+','+sat+'%,28%)');
+    g.addColorStop(.5,'hsl('+((hue1+hue2)/2)+','+(sat-10)+'%,22%)');
+    g.addColorStop(1,'hsl('+hue2+','+sat+'%,30%)');
+    ctx.fillStyle=g;ctx.fillRect(0,0,s,s);
+    ctx.globalAlpha=.08;
+    for(var y=0;y<s;y+=8)for(var x=0;x<s;x+=8){
+      if((x/8+y/8)%2===0){ctx.fillStyle='#fff';ctx.fillRect(x,y,8,8)}
+    }
+    ctx.globalAlpha=1;
+    var ch=name[0];
+    ctx.font='bold 28px "Courier New",monospace';
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.shadowColor='rgba(0,0,0,.6)';ctx.shadowBlur=4;
+    ctx.shadowOffsetX=1;ctx.shadowOffsetY=2;
+    ctx.fillStyle='rgba(255,255,255,.85)';
+    ctx.fillText(ch,s/2,s/2);
+    ctx.shadowBlur=0;
+    var vg=ctx.createRadialGradient(s/2,s/2,s*.2,s/2,s/2,s*.7);
+    vg.addColorStop(0,'transparent');
+    vg.addColorStop(1,'rgba(0,0,0,.35)');
+    ctx.fillStyle=vg;ctx.fillRect(0,0,s,s);
+  }
+
+  var activeIdx=-1;
+  var toastTimer;
+
+  // Map of songs that have real cover images
+  var coverMap={
+    '大梦零落':'covers/大梦零落.jpg',
+    '引路星':'covers/引路星.jpg',
+    '予梦':'covers/予梦.jpg',
+    '不如化身刺猬':'covers/不如化身刺猬.jpg',
+    '出发':'covers/出发.jpg',
+    '冬愿':'covers/冬愿.jpg',
+    '故里小月光':'covers/故里小月光.jpg',
+    '过期凤梨':'covers/过期凤梨.jpg',
+    '寄给月亮的梦':'covers/寄给月亮的梦.jpg',
+    'sonder':'covers/sonder.jpg',
+    '你即银河':'covers/你即银河.jpg',
+    '你是被爱的':'covers/你是被爱的.jpg',
+    '冬眠':'covers/冬眠.jpg',
+    '到此一游':'covers/到此一游.jpg',
+    '南风说':'covers/南风说.jpg',
+    '吹灭小山河':'covers/吹灭小山河.jpg',
+    '唯一的苹果':'covers/唯一的苹果.jpg',
+    '圣贤书':'covers/圣贤书.jpg',
+    '天光':'covers/天光.jpg',
+    '天和山雨雪':'covers/天和山雨雪.jpg',
+    '天空':'covers/天空.jpg',
+    '夭娘':'covers/夭娘.jpg',
+    '奔赴':'covers/奔赴.jpg',
+    '守在圆地爱你':'covers/守在圆地爱你.jpg',
+    '小女司南':'covers/小女司南.jpg',
+    '应怀酒':'covers/应怀酒.jpg',
+    '思有邪':'covers/思有邪.jpg',
+    '我还记得':'covers/我还记得.jpg',
+    '时间会回答':'covers/时间会回答.jpg',
+    '星河万里':'covers/星河万里.jpg',
+    '春三月':'covers/春三月.jpg',
+    '春不晚':'covers/春不晚.jpg',
+    '春日信笺':'covers/春日信笺.jpg',
+    '江湖行客':'covers/江湖行客.jpg',
+    '游侠不是侠':'covers/游侠不是侠.jpg',
+    '烟雨行舟':'covers/烟雨行舟.jpg',
+    '苏东坡':'covers/苏东坡.jpg',
+    '苏州人家':'covers/苏州人家.jpg',
+    '蜕':'covers/蜕.jpg',
+    '逃不掉':'covers/逃不掉.jpg',
+    '逆流雨':'covers/逆流雨.jpg',
+    '你相信平行时空吗':'covers/你相信平行时空吗.jpg',
+    '尔尔':'covers/尔尔.jpg',
+    '星星在唱歌':'covers/星星在唱歌.jpg',
+    '一拜天地':'covers/一拜天地.jpg',
+    '一晃又一年':'covers/一晃又一年.jpg',
+    '人间不值得':'covers/人间不值得.jpg',
+    '拜无忧':'covers/拜无忧.jpg',
+    '东风志':'covers/东风志.jpg',
+    '勾指起誓':'covers/勾指起誓.jpg',
+    '千秋此意':'covers/千秋此意.jpg',
+    '双生':'covers/双生.jpg',
+    '双面你我':'covers/双面你我.jpg',
+    '和风赴你':'covers/和风赴你.jpg',
+    '喧嚣':'covers/喧嚣.jpg',
+    '如此漫长一生':'covers/如此漫长一生.jpg',
+    '岁方秋':'covers/岁方秋.jpg',
+    '摇橹食光':'covers/摇橹食光.jpg',
+    '捉迷藏':'covers/捉迷藏.jpg',
+    '梦与星海之间':'covers/梦与星海之间.jpg',
+    '梨园小记':'covers/梨园小记.jpg',
+    '泪的告白':'covers/泪的告白.jpg',
+    '清零':'covers/清零.jpg',
+    '烟火焚':'covers/烟火焚.jpg',
+    '白驹':'covers/白驹.jpg',
+    '离忧':'covers/离忧.jpg',
+    '秋风词':'covers/秋风词.jpg',
+    '絮咏歌':'covers/絮咏歌.jpg',
+    '谓风':'covers/谓风.jpg',
+    '风过谢桃花':'covers/风过谢桃花.jpg',
+    '飞舟':'covers/飞舟.jpg',
+    '飞花入瑟':'covers/飞花入瑟.jpg',
+    '飞鸟来信':'covers/飞鸟来信.jpg',
+    'escaping_gravity':'covers/escaping_gravity.jpg',
+    '一纸山河':'covers/一纸山河.jpg'
+  };
+
+  var pinnedSong = '大梦零落';
+
+  songs.forEach(function(song,i){
+    var card=document.createElement('div');
+    card.className='song-card';
+    // Gold "新歌" badge for pinned song
+    if(song.name===pinnedSong){
+      var badge=document.createElement('div');
+      badge.className='new-song-badge';
+      badge.textContent='★ 司南新歌 ★';
+      card.appendChild(badge);
+    }
+    var cover=document.createElement('div');
+    cover.className='song-cover';
+    if(coverMap[song.name]){
+      var img=document.createElement('img');
+      img.src=coverMap[song.name];
+      img.alt=song.name;
+      img.style.cssText='width:100%;height:100%;display:block;object-fit:cover;image-rendering:pixelated';
+      cover.appendChild(img);
+    }else{
+      var cvs=document.createElement('canvas');
+      genCover(song.name,cvs);
+      cover.appendChild(cvs);
+    }
+    var label=document.createElement('div');
+    label.className='song-name';
+    label.textContent=song.name;
+    card.appendChild(cover);
+    card.appendChild(label);
+    card.addEventListener('click',function(){ selectSong(i); });
+    scroll.appendChild(card);
+  });
+
+  function selectSong(idx){
+    if(idx===activeIdx) return;
+    var cards=scroll.querySelectorAll('.song-card');
+    if(activeIdx>=0&&cards[activeIdx]) cards[activeIdx].classList.remove('active');
+    cards[idx].classList.add('active');
+    activeIdx=idx;
+    // Update the hidden presetSelect and trigger change
+    sel.selectedIndex=songs[idx].index;
+    sel.dispatchEvent(new Event('change'));
+    // Toast
+    if(toastEl){
+      toastEl.textContent='已选择: '+songs[idx].name;
+      toastEl.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer=setTimeout(function(){toastEl.classList.remove('show')},1400);
+    }
+    cards[idx].scrollIntoView({behavior:'smooth',block:'center',inline:'center'});
+  }
+
+  // Highlight first song visually but do NOT trigger load
+  if(songs.length>0){
+    var cards=scroll.querySelectorAll('.song-card');
+    cards[0].classList.add('active');
+    activeIdx=0;
+  }
+})();
+</script>
+<script>
+// Draw pixel-art gear icon on gearCanvas
+(function(){
+  var c=document.getElementById('gearCanvas');
+  if(!c)return;
+  var ctx=c.getContext('2d');
+  ctx.imageSmoothingEnabled=false;
+  // 16x16 pixel grid scaled to 64x64 (4x)
+  var s=4;
+  var gear=[
+    '......XXXX......',
+    '......X..X......',
+    '..XX..X..X..XX..',
+    '..X.XXX..XXX.X..',
+    '..X.X......X.X..',
+    '..X.X......X.X..',
+    'XXX.X......X.XXX',
+    'X....XXXXXX....X',
+    'X....XXXXXX....X',
+    'XXX.X......X.XXX',
+    '..X.X......X.X..',
+    '..X.X......X.X..',
+    '..X.XXX..XXX.X..',
+    '..XX..X..X..XX..',
+    '......X..X......',
+    '......XXXX......'
+  ];
+  for(var y=0;y<16;y++){
+    for(var x=0;x<16;x++){
+      if(gear[y][x]==='X'){
+        // slight color variation for depth
+        var dist=Math.sqrt(Math.pow(x-7.5,2)+Math.pow(y-7.5,2));
+        var bright=200+Math.floor(55*(1-dist/10));
+        bright=Math.max(180,Math.min(255,bright));
+        ctx.fillStyle='rgb('+bright+','+Math.floor(bright*0.85)+','+Math.floor(bright*0.6)+')';
+        ctx.fillRect(x*s,y*s,s,s);
+      }
+    }
+  }
+  // Center hole (darker)
+  for(var y=6;y<10;y++){
+    for(var x=6;x<10;x++){
+      if((x===6||x===9)&&(y===6||y===9))continue; // round corners
+      ctx.fillStyle='rgba(15,12,41,0.8)';
+      ctx.fillRect(x*s,y*s,s,s);
+    }
+  }
+})();
+</script>
+</body>
+</html>
