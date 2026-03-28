@@ -2,7 +2,7 @@
 
 ## 项目概述
 
-浏览器端音律游戏，双文件架构（`index.html` ~4249行 + `audioWorker.js` ~785行），使用 Canvas 2D 渲染，Web Audio API 进行音频分析与播放。支持触屏多点触控、键盘操作、自动谱面生成、长键（实验性）等功能。音频分析在 Web Worker 中执行，不阻塞主线程。
+浏览器端音律游戏，多文件架构，使用 Canvas 2D 渲染，Web Audio API 进行音频分析与播放。支持触屏多点触控、键盘操作、自动谱面生成、长键、云同步、排行榜等功能。音频分析在 Web Worker 中执行，不阻塞主线程。后端使用 Cloudflare Pages Functions + D1 数据库。
 
 ## 资源文件清单
 
@@ -1537,9 +1537,162 @@ GitHub: flayteas/Pixel-Rhythm (main 分支)
 ### 代码修改注意事项
 
 - **纯静态项目**: 没有打包工具、没有模块系统、没有 npm。所有 JS 文件通过 `<script>` 标签按顺序加载，共享全局作用域
-- **加载顺序**: `constants.js` → `audio.js` → `notes.js` → `render.js` → `tutorial.js` → `debug.js`（顺序不可打乱）
+- **加载顺序**: `constants.js` → `audio.js` → `notes.js` → `render.js` → `tutorial.js` → `debug.js` → `cloud.js`（顺序不可打乱，cloud.js 必须最后加载）
 - **audioWorker.js 独立运行**: 在 Web Worker 中执行，不能访问 DOM 或主线程变量。与主线程仅通过 `postMessage` 通信
 - **两份分析代码**: `audio.js` 和 `audioWorker.js` 各有一份音频分析/后处理代码。Worker 版本为实际运行版本，主线程版本供调试面板直接调用。修改分析逻辑时**两份都要同步更新**
 - **谱面缓存 key**: 包含 `hold|mirror` 状态，切换设置后会自动重新生成。修改谱面生成逻辑后可能需要清除 localStorage 中的缓存
 - **资源文件**: 所有音效/图片/音乐与 index.html 同目录平铺放置，封面图集中在 `covers/` 子目录
 - **`.gitignore`**: 排除了残留重复文件、候选音效、临时开发文件等（详见文件内容）
+
+### 云服务架构（v61 新增）
+
+**架构概览:**
+
+```
+浏览器 (pixel-rhythm.pages.dev)
+  │
+  │  fetch('/api/...')  ← 同域名调用，无 CORS 问题
+  ▼
+Cloudflare Pages Functions (functions/api/[[path]].js)
+  │
+  │  env.DB 绑定
+  ▼
+Cloudflare D1 数据库 (pixel-rhythm-db)
+  │
+  数据表: users / records / settings
+```
+
+**关键 URL 和资源:**
+
+| 资源 | 地址/标识 |
+|------|----------|
+| 游戏页面 | https://pixel-rhythm.pages.dev/ |
+| GitHub 仓库 | https://github.com/flayteas/Pixel-Rhythm |
+| Cloudflare Dashboard | https://dash.cloudflare.com → Workers 和 Pages → pixel-rhythm |
+| D1 数据库名 | `pixel-rhythm-db` |
+| D1 数据库 ID | `c87b292b-fa09-4c61-82dc-c87d8bfb17db` |
+| D1 绑定变量名 | `DB` |
+| Workers API（备用） | https://pixel-rhythm-api.3044213400.workers.dev （国内可能被墙，已弃用） |
+| Cloudflare 账号 | 3044213400@qq.com |
+
+**API 端点:**
+
+| 方法 | 路径 | 功能 | 需要认证 |
+|------|------|------|---------|
+| POST | `/api/auth/register` | 创建匿名用户，返回 token | 否 |
+| GET | `/api/auth/verify` | 验证 token 有效性 | 是 |
+| GET | `/api/sync` | 拉取云端数据（records + settings） | 是 |
+| PUT | `/api/sync` | 推送本地数据到云端（服务端合并最高分） | 是 |
+| GET | `/api/leaderboard/{songKey}` | 获取排行榜 Top 100 | 否 |
+
+**认证方式:**
+- 匿名 token 认证（无需第三方登录）
+- 客户端生成 64 字符随机 token，服务端存储 SHA-256 哈希
+- Token 存储在 localStorage（`pixelRhythm_cloudToken` / `pixelRhythm_cloudUserId`）
+- 请求头: `Authorization: Bearer <token>`
+
+**D1 数据库表结构:**
+
+```sql
+-- 用户表
+users (id TEXT PK, token_hash TEXT UNIQUE, display_name TEXT, auth_type TEXT, created_at INT, updated_at INT)
+
+-- 成绩记录表（复合主键: user_id + song_key）
+records (user_id TEXT, song_key TEXT, high_score INT, max_combo INT, perfects INT, goods INT, hits INT, misses INT, is_fc INT, play_count INT, last_played INT, replay_hash TEXT)
+
+-- 设置表
+settings (user_id TEXT PK, data_json TEXT, updated_at INT)
+
+-- 索引
+idx_records_score ON records(song_key, high_score DESC)  -- 排行榜查询用
+```
+
+**song_key 格式:** `{songFile}|{difficulty}`，例如 `assets/music/大梦零落.mp3|normal`
+
+**数据合并策略:**
+- 成绩：云端与本地取最高分，FC 状态取 OR，playCount 取最大值
+- 设置：云端覆盖本地（最新设备 wins）
+- 谱面：不同步（可从音频重新生成，节省存储）
+
+**云相关文件清单:**
+
+| 文件 | 说明 |
+|------|------|
+| `js/cloud.js` | 前端云同步模块（CloudSync IIFE），含认证、同步、排行榜 UI |
+| `functions/api/[[path]].js` | Pages Functions catch-all 路由，所有 API 逻辑 |
+| `worker/src/index.js` | 独立 Workers 版 API（备用，国内 workers.dev 被墙，已弃用） |
+| `worker/wrangler.toml` | Wrangler 配置（D1 绑定） |
+| `worker/schema.sql` | D1 建表语句 |
+
+**Wrangler CLI 常用命令:**
+
+```bash
+# 登录
+wrangler login
+
+# 查看 D1 数据库
+wrangler d1 list
+wrangler d1 execute pixel-rhythm-db --command="SELECT COUNT(*) FROM users" --remote
+
+# 部署 Workers（如果需要独立 Workers）
+cd worker && wrangler deploy
+
+# Pages Functions 不需要手动部署，git push 后 Cloudflare Pages 自动构建
+```
+
+**D1 绑定配置位置:**
+Cloudflare Dashboard → Workers 和 Pages → pixel-rhythm → 设置 → 绑定 → D1 数据库 → 变量名 `DB` → `pixel-rhythm-db`
+
+**注意事项:**
+- Pages Functions 放在项目根目录的 `functions/` 文件夹下，Cloudflare Pages 构建时自动识别
+- `functions/api/[[path]].js` 是 catch-all 路由，匹配所有 `/api/*` 请求
+- 文件名中的 `[[path]]` 是 Cloudflare 的动态路由语法
+- Pages Functions 不支持跨文件 ES module import，所有逻辑必须在单文件内
+- `workers.dev` 域名在中国大陆部分网络被墙，所以改用 Pages Functions（同域名调用，走 `pages.dev`）
+- 免费额度：Workers 请求 10万次/天，D1 读取 500万次/天，D1 写入 10万次/天，D1 存储 5GB
+
+**防作弊系统（已实现客户端部分）:**
+- `ReplayRecorder`（在 `js/notes.js` 顶部）记录每个判定事件
+- 结算时 `ReplayRecorder.validate()` 验证回放一致性
+- `ReplayRecorder.generateHash()` 生成 FNV-1a 完整性哈希
+- `saveRecord()` 拒绝 `_replayValid === false` 的成绩
+- 云端存储 `replayHash`，排行榜显示验证标记
+- 未来可在服务端重放回放数据验证分数
+
+---
+
+### v61 — 云同步 & 排行榜
+
+**任务**: 实现云端数据同步和全局排行榜
+
+**Phase 1: 云服务搭建**
+- 选型：Firebase → LeanCloud（关停）→ Cloudflare Workers + D1
+- 最终方案：Cloudflare Pages Functions + D1（同域名，国内可达）
+- D1 数据库 `pixel-rhythm-db` 创建并初始化表结构
+- Dashboard 中绑定 D1 到 Pages Functions（变量名 `DB`）
+
+**Phase 2: 后端 API**
+- 新增 `functions/api/[[path]].js`：catch-all 路由处理所有 API
+- 5 个端点：注册、验证、拉取、推送、排行榜
+- 认证：匿名 token + SHA-256 哈希存储
+- 推送合并策略：服务端比较分数，保留最高
+
+**Phase 3: 前端重写**
+- 重写 `js/cloud.js`：Firebase SDK → 纯 fetch API
+- `API_BASE = ''`（同域名调用，无 CORS）
+- CloudSync 公开接口不变，`constants.js` 中的调用代码无需修改
+- 新增 `showLeaderboard()` / `fetchLeaderboard()` 排行榜功能
+
+**Phase 4: UI 更新**
+- `index.html` 移除 Firebase SDK 的 3 个 `<script>` 标签
+- 主页工具栏新增「排行榜」按钮
+- 结算画面新增「排行榜」按钮（再来一次与返回主页之间）
+- 排行榜 overlay：标题、歌名、难度、Top 100 表格、返回按钮
+- 前三名金银铜 emoji，FC 显示 ★，验证通过显示 ✓
+
+**修改文件:**
+- `js/cloud.js` — 完全重写（Firebase → Cloudflare fetch API + 排行榜）
+- `index.html` — 移除 Firebase SDK，添加云同步按钮/排行榜按钮/V61 更新日志
+- `functions/api/[[path]].js` — 新增（Pages Functions API）
+- `worker/` — 新增（独立 Workers 备用方案，已弃用）
+- `docs/DEVLOG.md` — 更新云架构文档
