@@ -5,8 +5,8 @@ const CloudSync = (function() {
   'use strict';
 
   // ---- Config ----
-  // TODO: Replace with your Cloudflare Workers URL after deployment
-  const API_BASE = 'https://pixel-rhythm-api.3044213400.workers.dev';
+  // Uses same-origin Pages Functions (no external URL needed)
+  const API_BASE = '';
 
   const TOKEN_KEY = 'pixelRhythm_cloudToken';
   const USERID_KEY = 'pixelRhythm_cloudUserId';
@@ -20,12 +20,8 @@ const CloudSync = (function() {
   function init() {
     if (_initialized) return;
     try {
-      if (API_BASE.includes('YOUR_SUBDOMAIN')) {
-        console.warn('[Cloud] API not configured - cloud sync disabled');
-        _updateUI('unconfigured');
-        _initialized = true;
-        return;
-      }
+      // Ready to use
+      _updateUI('signed-out');
       // Restore saved credentials
       _token = localStorage.getItem(TOKEN_KEY);
       _userId = localStorage.getItem(USERID_KEY);
@@ -336,8 +332,8 @@ const CloudSync = (function() {
     const actions = document.getElementById('cloudDialogActions');
     if (!content || !actions) return;
 
-    if (API_BASE.includes('YOUR_SUBDOMAIN')) {
-      content.innerHTML = '<p style="color:#ff6b6b;">云服务尚未配置。</p><p style="font-size:12px;color:#8a7fb5;">请在 js/cloud.js 中设置 API_BASE 地址。</p>';
+    if (!_initialized) {
+      content.innerHTML = '<p style="color:#ff6b6b;">云服务未初始化。</p>';
       actions.innerHTML = '';
       return;
     }
