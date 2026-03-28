@@ -1410,6 +1410,39 @@ if (sr > 30000) {
 
 ---
 
+### v58–v60 — 新歌「大梦零落」& 选歌栏性能优化 & 取消自动加载
+
+**功能概述**: 新增司南新歌，选歌栏置顶金色徽章标注；选歌栏从 `backdrop-filter` 改为预模糊背景图方案彻底解决手机端滚动卡顿；取消启动时自动加载第一首歌以节省流量。
+
+**新歌添加**
+- 新增「大梦零落」：`大梦零落.mp3`（4.3MB）+ `covers/大梦零落.jpg`（12.5KB）
+- `<option>` 列表置顶，`coverMap` 首条
+- 选歌栏卡片顶部显示 `.new-song-badge`：金色「★ 司南新歌 ★」+ 呼吸脉冲动画（`badgePulse` keyframes）
+- 通过 JS 变量 `pinnedSong` 控制，未来换歌只需改一处
+
+**取消自动加载**
+- 启动时只高亮第一首卡片（`classList.add('active')`），不再触发 `sel.dispatchEvent(new Event('change'))`
+- 避免页面打开即下载 4-5MB 音频文件，节省移动端流量
+
+**选歌栏性能优化**
+- 移除 `backdrop-filter:blur(20px) saturate(1.3)`（手机端滚动卡顿根源）
+- 生成预模糊背景图 `startbg-blur.jpg`（PIL GaussianBlur radius=20，63KB）
+- 面板使用 `background:url('startbg-blur.jpg') right center/cover` + `::before` 半透明深色遮罩 `rgba(15,12,41,.6)`
+- 竖屏模式面板背景改为 `center bottom/cover` 匹配底部面板位置
+- 移除 `::before` 的 `filter:blur(8px)` 大面积模糊伪元素
+- `.panel-inner-glow` 从 3 层 radial-gradient 简化为 1 层 linear-gradient
+- `.song-card` transition 从 `cubic-bezier(.34,1.56,.64,1)` 弹性曲线改为 `ease-out`
+- 添加 `transform:translateZ(0)` 强制 GPU 合成层
+- active 卡片 `box-shadow` 从 3 层减至 2 层，模糊半径缩小
+- 移除 `scroll-behavior:smooth`，添加 `-webkit-overflow-scrolling:touch` 原生惯性滚动
+- CSS 版本从 v=57 升至 v=60
+
+**新增文件**: `大梦零落.mp3`、`covers/大梦零落.jpg`、`startbg-blur.jpg`
+
+**修改文件**: `index.html`（新歌 option + coverMap + pinnedSong 徽章逻辑 + 取消自动加载 + 更新日志 + CSS v60）、`style.css`（预模糊背景 + .new-song-badge 样式 + 卡片动画简化 + 面板性能优化）
+
+---
+
 ## 开发与部署工作流
 
 > 本节面向协作开发者/AI agent，描述项目的开发模式和部署链路。

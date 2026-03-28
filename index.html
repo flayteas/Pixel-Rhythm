@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, viewport-fit=cover">
 <title>像素笛韵 - Pixel Rhythm</title>
-<link rel="stylesheet" href="style.css?v=57">
+<link rel="stylesheet" href="style.css?v=60">
 </head>
 <body>
 <div id="app">
@@ -24,6 +24,7 @@
             <select id="presetSelect" style="font-family:inherit;font-size:14px;padding:6px 12px;background:#302b63;color:#fff;border:2px solid #9b59b6;border-radius:0;cursor:pointer;margin-left:6px;">
               <option value="">-- 请选择 --</option>
               <optgroup label="司南的歌">
+                <option value="大梦零落.mp3">大梦零落</option>
                 <option value="preset.mp3">拜无忧</option>
                 <option value="逆流雨.mp3">逆流雨</option>
                 <option value="过期凤梨.mp3">过期凤梨</option>
@@ -166,6 +167,15 @@
     <h2 style="font-size:clamp(20px,5vw,28px);color:#feca57;margin:16px 0 12px;letter-spacing:3px;">更新日志</h2>
     <button id="changelogBackBtn" class="pixel-btn" style="margin-bottom:16px;padding:12px 40px;font-size:clamp(14px,3.5vw,18px);">返回</button>
     <div id="changelogContent" style="max-width:min(600px,90vw);width:100%;color:#c8c0e0;font-size:13px;line-height:1.7;text-align:left;padding-bottom:20px;">
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v60 — 新歌「大梦零落」& 选歌栏性能优化</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>新增司南新歌「大梦零落」，选歌栏置顶并标注金色「★ 司南新歌 ★」徽章</li>
+          <li>启动时不再自动加载第一首歌，节省流量</li>
+          <li>选歌栏毛玻璃效果改为预模糊背景图方案，滚动零卡顿</li>
+          <li>精简卡片动画与阴影层数，提升手机端滚动帧率</li>
+        </ul>
+      </div>
       <div style="margin-bottom:18px;">
         <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v57 — 手机横屏适配 & 进度显示</h3>
         <ul style="padding-left:18px;margin:0;">
@@ -864,6 +874,7 @@
 
   // Map of songs that have real cover images
   var coverMap={
+    '大梦零落':'covers/大梦零落.jpg',
     '引路星':'covers/引路星.jpg',
     '予梦':'covers/予梦.jpg',
     '不如化身刺猬':'covers/不如化身刺猬.jpg',
@@ -940,9 +951,18 @@
     '一纸山河':'covers/一纸山河.jpg'
   };
 
+  var pinnedSong = '大梦零落';
+
   songs.forEach(function(song,i){
     var card=document.createElement('div');
     card.className='song-card';
+    // Gold "新歌" badge for pinned song
+    if(song.name===pinnedSong){
+      var badge=document.createElement('div');
+      badge.className='new-song-badge';
+      badge.textContent='★ 司南新歌 ★';
+      card.appendChild(badge);
+    }
     var cover=document.createElement('div');
     cover.className='song-cover';
     if(coverMap[song.name]){
@@ -984,13 +1004,11 @@
     cards[idx].scrollIntoView({behavior:'smooth',block:'center',inline:'center'});
   }
 
-  // Auto-select first song
+  // Highlight first song visually but do NOT trigger load
   if(songs.length>0){
     var cards=scroll.querySelectorAll('.song-card');
     cards[0].classList.add('active');
     activeIdx=0;
-    sel.selectedIndex=songs[0].index;
-    sel.dispatchEvent(new Event('change'));
   }
 })();
 </script>
