@@ -1,0 +1,8 @@
+name = "pixel-rhythm-api"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "pixel-rhythm-db"
+database_id = "c87b292b-fa09-4c61-82dc-c87d8bfb17db"
