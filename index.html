@@ -4,18 +4,20 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
 <title>像素笛韵 - Pixel Rhythm</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=59">
 </head>
 <body>
 <div id="app">
   <div id="startScreen">
+  <div id="mosaicBg"></div>
+  <div id="startScreenInner">
     <div id="startHeader">
       <h1 id="gameTitle">像素笛韵</h1>
       <p id="subtitle">Pixel Rhythm</p>
     </div>
     <div id="startBody">
       <div id="startCol1">
-        <div id="presetArea">
+        <div id="presetArea" style="display:none;">
           <label style="color:#e0c3fc;font-size:clamp(13px,3vw,16px);">&#127926; 内置音乐:
             <select id="presetSelect" style="font-family:inherit;font-size:14px;padding:6px 12px;background:#302b63;color:#fff;border:2px solid #9b59b6;border-radius:0;cursor:pointer;margin-left:6px;">
               <option value="">-- 请选择 --</option>
@@ -107,14 +109,14 @@
           </label>
           <p id="presetStatus"></p>
         </div>
-        <p id="divider">-- 或 --</p>
+        <p id="divider" style="display:none;">-- 或 --</p>
         <div id="uploadArea">
           <label for="audioInput" id="uploadLabel">&#127925; 选择本地音乐</label>
           <input type="file" id="audioInput" accept="audio/*">
           <p id="fileName"></p>
         </div>
-        <p id="hint">支持 MP3 / WAV / OGG | 左右点击 ASDF / HJKL</p>
-        <p id="hint2" style="margin-top:4px;font-size:11px;color:#888;">弧形判定线 | 勺尖越近判定越好(P>G>H)</p>
+        <p id="hint" style="display:none;">支持 MP3 / WAV / OGG | 左右点击 ASDF / HJKL</p>
+        <p id="hint2" style="display:none;">弧形判定线 | 勺尖越近判定越好(P>G>H)</p>
       </div>
       <div id="startCol2">
         <div id="optionsRow">
@@ -151,11 +153,34 @@
       </div>
     </div>
   </div>
+  <div id="songPanel">
+    <div class="panel-inner-glow"></div>
+    <div class="panel-header">
+      <span class="note-icon">♪</span>
+      <h2>选 曲</h2>
+      <div class="count" id="songCount"></div>
+    </div>
+    <div class="song-scroll" id="songScroll"></div>
+  </div>
+  </div>
+  <div id="songToast"></div>
   <!-- Changelog Overlay -->
   <div id="changelogOverlay" style="position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:flex-start;z-index:15;background:rgba(15,12,41,0.97);overflow-y:auto;padding:20px;">
     <h2 style="font-size:clamp(20px,5vw,28px);color:#feca57;margin:16px 0 12px;letter-spacing:3px;">更新日志</h2>
     <button id="changelogBackBtn" class="pixel-btn" style="margin-bottom:16px;padding:12px 40px;font-size:clamp(14px,3.5vw,18px);">返回</button>
     <div id="changelogContent" style="max-width:min(600px,90vw);width:100%;color:#c8c0e0;font-size:13px;line-height:1.7;text-align:left;padding-bottom:20px;">
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v54 — 选曲面板 & 开始界面视觉重做</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>新增右侧选曲面板：液态玻璃毛玻璃效果，垂直滚动卡片列表，点击选歌并触发加载</li>
+          <li>歌曲封面自动生成：基于歌名哈希的渐变色 + 首字大字，支持自定义封面图（如「引路星」）</li>
+          <li>选中卡片金色发光边框 + 缩放动画，底部 toast 提示已选歌曲</li>
+          <li>背景替换为像素棋盘格马赛克，canvas 生成 12×8 像素纹理，CSS pixelated 放大平铺，不随窗口拉伸</li>
+          <li>开始界面布局改为居中单列，按钮分组更均衡；标题白色描边加粗；文字颜色和阴影优化适配暖色背景</li>
+          <li>窄屏/竖屏响应式：选曲面板移至底部改为横向滚动，卡片自动缩小</li>
+          <li>封面图压缩优化：原图 PNG 缩至 256×256 JPG（~32KB），加速加载</li>
+        </ul>
+      </div>
       <div style="margin-bottom:18px;">
         <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v53 — 本地成绩记录系统</h3>
         <ul style="padding-left:18px;margin:0;">
@@ -752,5 +777,127 @@
 <script src="render.js"></script>
 <script src="tutorial.js"></script>
 <script src="debug.js"></script>
+<script>
+// === Song Panel: mosaic background + cover generation + card interaction ===
+(function(){
+  // Mosaic checkerboard background
+  var COLS=12,ROWS=8,mc=document.createElement('canvas');
+  mc.width=COLS;mc.height=ROWS;
+  var mctx=mc.getContext('2d');
+  var cA=[210,165,100],cB=[155,95,60];
+  for(var y=0;y<ROWS;y++)for(var x=0;x<COLS;x++){
+    var c=(x+y)%2===0?cA:cB;
+    mctx.fillStyle='rgb('+c[0]+','+c[1]+','+c[2]+')';
+    mctx.fillRect(x,y,1,1);
+  }
+  var mEl=document.getElementById('mosaicBg');
+  if(mEl) mEl.style.backgroundImage='url('+mc.toDataURL()+')';
+
+  // Build song list from presetSelect options
+  var sel=document.getElementById('presetSelect');
+  var scroll=document.getElementById('songScroll');
+  var countEl=document.getElementById('songCount');
+  var toastEl=document.getElementById('songToast');
+  if(!sel||!scroll) return;
+
+  var songs=[];
+  for(var i=0;i<sel.options.length;i++){
+    var opt=sel.options[i];
+    if(opt.value) songs.push({name:opt.text,value:opt.value,index:i});
+  }
+  if(countEl) countEl.textContent=songs.length+'首';
+
+  function hashStr(s){var h=0;for(var i=0;i<s.length;i++)h=((h<<5)-h)+s.charCodeAt(i),h|=0;return Math.abs(h)}
+
+  function genCover(name,canvas){
+    var h=hashStr(name);
+    var ctx=canvas.getContext('2d');
+    var s=64;canvas.width=s;canvas.height=s;
+    var hue1=h%360,hue2=(h*7+120)%360;
+    var sat=40+(h%30);
+    var g=ctx.createLinearGradient(0,0,s,s);
+    g.addColorStop(0,'hsl('+hue1+','+sat+'%,28%)');
+    g.addColorStop(.5,'hsl('+((hue1+hue2)/2)+','+(sat-10)+'%,22%)');
+    g.addColorStop(1,'hsl('+hue2+','+sat+'%,30%)');
+    ctx.fillStyle=g;ctx.fillRect(0,0,s,s);
+    ctx.globalAlpha=.08;
+    for(var y=0;y<s;y+=8)for(var x=0;x<s;x+=8){
+      if((x/8+y/8)%2===0){ctx.fillStyle='#fff';ctx.fillRect(x,y,8,8)}
+    }
+    ctx.globalAlpha=1;
+    var ch=name[0];
+    ctx.font='bold 28px "Courier New",monospace';
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.shadowColor='rgba(0,0,0,.6)';ctx.shadowBlur=4;
+    ctx.shadowOffsetX=1;ctx.shadowOffsetY=2;
+    ctx.fillStyle='rgba(255,255,255,.85)';
+    ctx.fillText(ch,s/2,s/2);
+    ctx.shadowBlur=0;
+    var vg=ctx.createRadialGradient(s/2,s/2,s*.2,s/2,s/2,s*.7);
+    vg.addColorStop(0,'transparent');
+    vg.addColorStop(1,'rgba(0,0,0,.35)');
+    ctx.fillStyle=vg;ctx.fillRect(0,0,s,s);
+  }
+
+  var activeIdx=-1;
+  var toastTimer;
+
+  // Map of songs that have real cover images
+  var coverMap={'引路星':'covers/引路星.jpg'};
+
+  songs.forEach(function(song,i){
+    var card=document.createElement('div');
+    card.className='song-card';
+    var cover=document.createElement('div');
+    cover.className='song-cover';
+    if(coverMap[song.name]){
+      var img=document.createElement('img');
+      img.src=coverMap[song.name];
+      img.alt=song.name;
+      img.style.cssText='width:100%;height:100%;display:block;object-fit:cover;image-rendering:pixelated';
+      cover.appendChild(img);
+    }else{
+      var cvs=document.createElement('canvas');
+      genCover(song.name,cvs);
+      cover.appendChild(cvs);
+    }
+    var label=document.createElement('div');
+    label.className='song-name';
+    label.textContent=song.name;
+    card.appendChild(cover);
+    card.appendChild(label);
+    card.addEventListener('click',function(){ selectSong(i); });
+    scroll.appendChild(card);
+  });
+
+  function selectSong(idx){
+    if(idx===activeIdx) return;
+    var cards=scroll.querySelectorAll('.song-card');
+    if(activeIdx>=0&&cards[activeIdx]) cards[activeIdx].classList.remove('active');
+    cards[idx].classList.add('active');
+    activeIdx=idx;
+    // Update the hidden presetSelect and trigger change
+    sel.selectedIndex=songs[idx].index;
+    sel.dispatchEvent(new Event('change'));
+    // Toast
+    if(toastEl){
+      toastEl.textContent='已选择: '+songs[idx].name;
+      toastEl.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer=setTimeout(function(){toastEl.classList.remove('show')},1400);
+    }
+    cards[idx].scrollIntoView({behavior:'smooth',block:'center',inline:'center'});
+  }
+
+  // Auto-select first song
+  if(songs.length>0){
+    var cards=scroll.querySelectorAll('.song-card');
+    cards[0].classList.add('active');
+    activeIdx=0;
+    sel.selectedIndex=songs[0].index;
+    sel.dispatchEvent(new Event('change'));
+  }
+})();
+</script>
 </body>
 </html>
