@@ -9,8 +9,12 @@ html, body { width:100%; height:100%; overflow:hidden; background:#1a1a2e; font-
 #startBody { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; width:100%; max-width:600px; }
 #startCol1, #startCol2 { display:flex; flex-direction:column; align-items:center; width:100%; min-width:0; gap:6px; }
 #mainActions { margin-top:10px; display:flex; gap:10px; align-items:center; justify-content:center; }
+#loadStatus { font-size:clamp(11px,2.2vw,13px); color:#feca57; min-height:18px; text-align:center; margin:4px 0 0; text-shadow:1px 1px 2px rgba(0,0,0,.6); transition:opacity .3s; }
 #secondaryActions { display:flex; gap:8px; align-items:center; justify-content:center; flex-wrap:wrap; margin-top:6px; }
 #utilActions { display:flex; gap:8px; align-items:center; justify-content:center; flex-wrap:wrap; margin-top:6px; }
+/* Unified button sizing */
+#mainActions .pixel-btn { padding:12px 36px; font-size:clamp(14px,3vw,18px); }
+#secondaryActions .pixel-btn, #utilActions .pixel-btn { padding:10px 24px; font-size:clamp(12px,2.5vw,15px); }
 #gameTitle { font-size:clamp(20px,5vw,42px); color:#fff; letter-spacing:4px; image-rendering:pixelated; font-weight:bold; -webkit-text-stroke:2px #1a0a0a; paint-order:stroke fill; text-shadow:3px 3px 0 #1a0a0a,-3px -3px 0 #1a0a0a,3px -3px 0 #1a0a0a,-3px 3px 0 #1a0a0a,0 0 16px rgba(255,255,255,.3),0 0 40px rgba(255,255,255,.1); }
 #subtitle { font-size:clamp(10px,2vw,16px); color:#fff8e1; margin-top:2px; letter-spacing:8px; text-shadow:1px 1px 3px rgba(0,0,0,.6); }
 #uploadArea { margin-top:8px; text-align:center; }
@@ -81,8 +85,6 @@ input[type=range]::-moz-range-thumb { width: 22px; height: 24px; background: url
 #pauseRetryBtn:hover { }
 #pauseExitBtn { }
 #pauseExitBtn:hover { }
-#debugBtn { margin-top:0; padding:8px 20px; font-size:clamp(11px,2vw,13px); font-family:inherit; color:#fff; cursor:pointer; }
-#debugBtn:hover { }
 #debugPanel { position:fixed; top:0; right:0; width:420px; max-width:100vw; height:100vh; background:rgba(15,12,41,0.95); border-left:2px solid #9b59b6; z-index:100; display:none; flex-direction:column; overflow:hidden; font-size:13px; color:#e0c3fc; }
 #debugPanel.open { display:flex; }
 #debugPanel .dp-header { display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:rgba(48,43,99,0.9); border-bottom:1px solid #9b59b6; flex-shrink:0; }
@@ -128,7 +130,6 @@ input[type=range]::-moz-range-thumb { width: 22px; height: 24px; background: url
   #optionsRow { flex-direction:column; gap:6px; }
   #startBtn { padding:14px 44px; font-size:clamp(15px,4vw,20px); }
   #fullscreenBtn { padding:10px 30px; font-size:clamp(12px,3vw,15px); }
-  #debugBtn { padding:8px 20px; font-size:12px; }
   #hint, #hint2 { font-size:10px !important; padding:0 8px; text-align:center; }
   #debugPanel { width:100vw; border-left:none; border-top:2px solid #9b59b6; }
   #debugPanel .dp-body { padding:8px 10px; }
@@ -162,15 +163,14 @@ input[type=range]::-moz-range-thumb { width: 22px; height: 24px; background: url
   #optionsRow input[type=range] { width:55px !important; }
   #optionsRow select { font-size:11px !important; padding:3px 6px !important; }
   #mainActions { margin-top:4px !important; gap:6px; }
-  #startBtn { padding:6px 20px !important; font-size:12px !important; }
-  #settingsBtn { padding:6px 14px !important; font-size:11px !important; }
+  #mainActions .pixel-btn { padding:6px 20px !important; font-size:12px !important; }
   #secondaryActions { margin-top:3px; gap:6px; }
   #fullscreenBtn { padding:5px 14px !important; font-size:10px !important; }
   #loadChartBtn { padding:4px 12px !important; font-size:9px !important; }
   #utilActions { margin-top:3px; gap:4px; }
-  #debugBtn { padding:4px 10px !important; font-size:9px !important; }
-  #tutorialBtn { padding:4px 10px !important; font-size:9px !important; }
-  #changelogBtn { padding:4px 10px !important; font-size:9px !important; }
+  #secondaryActions .pixel-btn, #utilActions .pixel-btn { padding:4px 10px !important; font-size:9px !important; }
+  #gearBtn { top:6px; left:6px; width:36px; height:36px; }
+  #gearCanvas { width:36px; height:36px; }
   #pauseOverlay button { padding:8px 28px; font-size:14px; min-width:140px; }
   #endScreen h2 { font-size:22px; margin-bottom:8px; }
   #endScreen p { font-size:13px; margin:3px 0; }
@@ -188,11 +188,12 @@ input[type=range]::-moz-range-thumb { width: 22px; height: 24px; background: url
   #hint2 { display:none; }
   #optionsRow label { font-size:9px !important; }
   #mainActions { margin-top:2px !important; }
-  #startBtn { padding:5px 16px !important; font-size:11px !important; }
-  #settingsBtn { padding:5px 12px !important; font-size:10px !important; }
+  #mainActions .pixel-btn { padding:5px 16px !important; font-size:11px !important; }
   #fullscreenBtn { padding:4px 12px !important; font-size:9px !important; }
   #utilActions { gap:3px; }
-  #debugBtn, #tutorialBtn, #changelogBtn { padding:3px 8px !important; font-size:8px !important; }
+  #utilActions .pixel-btn { padding:3px 8px !important; font-size:8px !important; }
+  #gearBtn { top:4px; left:4px; width:28px; height:28px; }
+  #gearCanvas { width:28px; height:28px; }
 }
 
 #tutorialScreen { position:absolute; inset:0; display:none; flex-direction:column; align-items:center; z-index:18; background:linear-gradient(180deg,#0f0c29,#302b63,#24243e); overflow-y:auto; padding:20px 0; }
@@ -206,8 +207,16 @@ input[type=range]::-moz-range-thumb { width: 22px; height: 24px; background: url
 #tutDemoStatus { text-align:center; color:#feca57; font-size:clamp(13px,3vw,16px); margin:8px 0; min-height:24px; }
 #tutDemoHint { text-align:center; color:#48dbfb; font-size:clamp(11px,2.5vw,13px); margin:4px 0 8px; min-height:20px; }
 
-/* ============ MOSAIC BACKGROUND ============ */
-#mosaicBg{position:absolute;inset:0;z-index:0;image-rendering:pixelated;background-size:1920px 1280px;background-repeat:repeat;pointer-events:none}
+/* ============ GEAR BUTTON (top-left settings) ============ */
+#gearBtn { position:absolute; top:12px; left:12px; z-index:5; background:none; border:none; cursor:pointer; padding:0; width:48px; height:48px; transition:transform .2s, filter .2s; image-rendering:pixelated; }
+#gearBtn:hover { transform:rotate(30deg) scale(1.1); filter:brightness(1.3); }
+#gearBtn:active { transform:rotate(30deg) scale(0.95); }
+#gearCanvas { width:48px; height:48px; image-rendering:pixelated; display:block; }
+
+/* ============ START SCREEN BACKGROUND ============ */
+#mosaicBg{position:absolute;inset:0;z-index:0;pointer-events:none;background:url('startbg.jpg') center center/cover no-repeat #1a1a2e}
+#bgBlurOverlay{position:absolute;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 55% 65% at 40% 50%,rgba(15,12,41,.6) 0%,rgba(15,12,41,.3) 50%,transparent 100%)}
+#bgBlurOverlay::before{content:'';position:absolute;inset:0;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);mask-image:radial-gradient(ellipse 50% 60% at 40% 50%,#000 0%,#000 40%,transparent 70%);-webkit-mask-image:radial-gradient(ellipse 50% 60% at 40% 50%,#000 0%,#000 40%,transparent 70%)}
 
 /* ============ SONG PANEL — liquid glass ============ */
 #songPanel{
@@ -295,10 +304,6 @@ input[type=range]::-moz-range-thumb { width: 22px; height: 24px; background: url
   box-shadow:0 0 16px 5px rgba(254,202,87,.35),0 0 32px 10px rgba(254,202,87,.12),0 0 52px 16px rgba(254,202,87,.05);
 }
 .song-cover canvas{width:100%;height:100%;display:block;image-rendering:pixelated}
-.song-cover::after{
-  content:'';position:absolute;inset:0;pointer-events:none;
-  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.06) 2px,rgba(0,0,0,.06) 4px);
-}
 .song-name{
   margin-top:6px;font-size:11px;color:rgba(224,195,252,.6);text-align:center;
   max-width:134px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;

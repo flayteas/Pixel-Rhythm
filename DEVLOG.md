@@ -21,6 +21,8 @@
 | `perfect_ding.wav` | Perfect 判定音效（2200Hz 钟鸣，0.22s） | AI 合成，v52 新增 |
 | `escaping_gravity.ogg` | 内置曲目「Escaping Gravity」 | 用户上传 |
 | `escaping_gravity.flac` | Escaping Gravity 无损版 | 用户上传 |
+| `startbg.jpg` | 开始界面背景照片墙（1600×1200, 333KB） | 用户上传 + 压缩 |
+| `covers/*.jpg` | 歌曲封面图（74张，256×256 JPG，4~18KB/张） | 用户上传 + PIL 压缩 |
 
 ### 内置音乐 - 司南的歌
 
@@ -1338,6 +1340,58 @@ if (sr > 30000) {
 
 ---
 
+### v54 — 选曲面板 & 开始界面视觉重做
+
+**功能概述**: 新增右侧选曲面板，重做开始界面布局和视觉风格。
+
+- 新增右侧选曲面板：液态玻璃毛玻璃效果（`backdrop-filter:blur(20px) saturate(1.3)`），垂直滚动卡片列表
+- 歌曲封面自动生成：`genCover()` 函数基于歌名哈希生成渐变色 + 首字大字 canvas 图片
+- 支持自定义封面图：通过 `coverMap` 对象映射歌名到 `covers/` 目录下的 JPG 文件
+- 选中卡片金色发光边框 + 缩放动画，底部 toast 提示已选歌曲
+- 背景替换为像素棋盘格马赛克，canvas 生成 12×8 像素纹理，CSS pixelated 放大平铺
+- 开始界面布局改为居中单列，按钮分组（主操作/次要/工具栏）更均衡
+- 窄屏/竖屏响应式：选曲面板移至底部改为横向滚动，卡片自动缩小
+- 封面图压缩流程：原图 → PIL resize 256×256 → JPEG quality 75（~4-18KB/张）
+
+**修改文件**: `index.html`（选曲面板 HTML + inline script + coverMap）、`style.css`（面板样式 + 毛玻璃 + 响应式）
+
+---
+
+### v55 — 开始界面背景照片 & 封面扫描线移除
+
+**功能概述**: 替换开始界面背景为照片墙，优化封面显示效果。
+
+- 开始界面背景替换为 `startbg.jpg`（照片墙，1600×1200 压缩至 333KB）
+- 按钮区域局部高斯模糊：独立 `#bgBlurOverlay` div + `::before` 伪元素实现 `backdrop-filter:blur(5px)`
+- 使用 `mask-image:radial-gradient(ellipse 50% 60% at 40% 50%)` 限制模糊范围为椭圆区域，边缘保持清晰
+- 半透明暗色渐变叠加层提升按钮区域文字可读性
+- 移除 `.song-cover::after` CRT 扫描线效果（`repeating-linear-gradient` 2px 水平条纹）
+- 解决 `backdrop-filter` 与 `z-index` 堆叠上下文冲突：从伪元素方案改为独立 DOM 元素
+- CSS 版本从 v=54 升至 v=55
+
+**修改文件**: `index.html`（新增 `#bgBlurOverlay` div、CSS 版本号）、`style.css`（背景样式 + 模糊叠加 + 移除扫描线）
+
+---
+
+### v56 — 主界面按钮优化 & 设置整合 & 封面扩充
+
+**功能概述**: 精简主界面按钮布局，将辅助功能整合进设置面板，大规模添加歌曲封面。
+
+- 设置入口改为左上角 64×64 像素风齿轮图标（canvas 绘制 16×16 像素网格 4x 放大）
+- 齿轮按钮悬停旋转 30° + 亮度提升动画，响应式自动缩小（36px@450px / 28px@360px）
+- 镜像（左右反转）选项从主界面 `#optionsRow` 移入设置面板 `#settingsOverlay`
+- 调试面板入口从底部工具栏移入设置面板，与返回按钮并排
+- 移除「加载已有谱面」按钮（`#loadChartBtn`），`constants.js` 添加 null guard 保持兼容
+- 统一主界面按钮尺寸：通过 CSS 分层控制（主操作 `12px 36px` / 次要+工具 `10px 24px`），移除各按钮内联 style
+- 新增歌曲封面至 74 首：批量压缩为 256×256 JPEG（quality 75），单张 4~18KB
+- CSS 版本从 v=55 升至 v=56
+
+**新增文件**: `covers/` 目录下 74 张歌曲封面 JPG
+
+**修改文件**: `index.html`（齿轮按钮 + coverMap 74条 + 移除 settingsBtn/debugBtn/loadChartBtn/mirrorCheck + 齿轮绘制脚本 + 更新日志）、`style.css`（齿轮按钮样式 + 按钮统一尺寸 + 响应式适配）、`render.js`（gearBtn 事件替换 settingsBtn）、`constants.js`（loadChartBtn null guard）
+
+---
+
 ## 开发与部署工作流
 
 > 本节面向协作开发者/AI agent，描述项目的开发模式和部署链路。
@@ -1362,6 +1416,8 @@ C:\pixel-flute/              ← 用户本地项目目录（Windows）
 ├── background01.jpg / background02.jpg  ← 背景
 ├── button.png               ← 按钮材质
 ├── slider-thumb.png         ← 南瓜滑块
+├── startbg.jpg              ← 开始界面背景照片墙
+├── covers/                  ← 歌曲封面图（74张 256×256 JPG）
 ├── preset.mp3               ← 拜无忧
 ├── *.mp3                    ← 其它内置歌曲（共 78 首司南的歌）
 └── .gitignore
@@ -1434,5 +1490,5 @@ GitHub: flayteas/Pixel-Rhythm (main 分支)
 - **audioWorker.js 独立运行**: 在 Web Worker 中执行，不能访问 DOM 或主线程变量。与主线程仅通过 `postMessage` 通信
 - **两份分析代码**: `audio.js` 和 `audioWorker.js` 各有一份音频分析/后处理代码。Worker 版本为实际运行版本，主线程版本供调试面板直接调用。修改分析逻辑时**两份都要同步更新**
 - **谱面缓存 key**: 包含 `hold|mirror` 状态，切换设置后会自动重新生成。修改谱面生成逻辑后可能需要清除 localStorage 中的缓存
-- **资源文件**: 所有音效/图片/音乐与 index.html 同目录平铺放置，无子目录
+- **资源文件**: 所有音效/图片/音乐与 index.html 同目录平铺放置，封面图集中在 `covers/` 子目录
 - **`.gitignore`**: 排除了残留重复文件、候选音效、临时开发文件等（详见文件内容）

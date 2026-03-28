@@ -4,13 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
 <title>像素笛韵 - Pixel Rhythm</title>
-<link rel="stylesheet" href="style.css?v=54">
+<link rel="stylesheet" href="style.css?v=56">
 </head>
 <body>
 <div id="app">
   <div id="startScreen">
   <div id="mosaicBg"></div>
+  <div id="bgBlurOverlay"></div>
   <div id="startScreenInner">
+    <button id="gearBtn" title="设置"><canvas id="gearCanvas" width="64" height="64"></canvas></button>
     <div id="startHeader">
       <h1 id="gameTitle">像素笛韵</h1>
       <p id="subtitle">Pixel Rhythm</p>
@@ -107,7 +109,7 @@
               </optgroup>
             </select>
           </label>
-          <p id="presetStatus"></p>
+          <p id="presetStatus" style="display:none;"></p>
         </div>
         <p id="divider" style="display:none;">-- 或 --</p>
         <div id="uploadArea">
@@ -132,23 +134,18 @@
             <input type="range" id="speedSlider" min="1.0" max="5.0" step="0.05" value="2.8" style="vertical-align:middle;width:100px;accent-color:#9b59b6;">
             <span id="speedVal" style="display:inline-block;min-width:48px;text-align:center;">2.8s</span>
           </label>
-          <label style="cursor:pointer;">
-            <input type="checkbox" id="mirrorCheck" style="accent-color:#9b59b6;vertical-align:middle;"> 镜像（左右反转）
-          </label>
         </div>
+        <p id="loadStatus"></p>
         <div id="mainActions">
           <button id="startBtn" class="pixel-btn" disabled>开始游戏</button>
-          <button id="settingsBtn" class="pixel-btn" style="padding:12px 28px;font-size:clamp(13px,3vw,16px);">设置</button>
         </div>
         <div id="secondaryActions">
-          <button id="fullscreenBtn" class="pixel-btn" style="margin-top:8px;">全屏游玩</button>
-          <button id="loadChartBtn" class="pixel-btn">加载已有谱面</button>
+          <button id="fullscreenBtn" class="pixel-btn">全屏游玩</button>
         </div>
         <div id="utilActions">
-          <button id="recordsBtn" class="pixel-btn" style="padding:10px 28px;font-size:clamp(12px,3vw,14px);">成绩记录</button>
-          <button id="debugBtn" class="pixel-btn">调试面板</button>
-          <button id="tutorialBtn" class="pixel-btn" style="padding:10px 28px;font-size:clamp(12px,3vw,14px);">教程</button>
-          <button id="changelogBtn" class="pixel-btn" style="padding:10px 28px;font-size:clamp(12px,3vw,14px);">更新日志</button>
+          <button id="recordsBtn" class="pixel-btn">成绩记录</button>
+          <button id="tutorialBtn" class="pixel-btn">教程</button>
+          <button id="changelogBtn" class="pixel-btn">更新日志</button>
         </div>
       </div>
     </div>
@@ -169,6 +166,25 @@
     <h2 style="font-size:clamp(20px,5vw,28px);color:#feca57;margin:16px 0 12px;letter-spacing:3px;">更新日志</h2>
     <button id="changelogBackBtn" class="pixel-btn" style="margin-bottom:16px;padding:12px 40px;font-size:clamp(14px,3.5vw,18px);">返回</button>
     <div id="changelogContent" style="max-width:min(600px,90vw);width:100%;color:#c8c0e0;font-size:13px;line-height:1.7;text-align:left;padding-bottom:20px;">
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v56 — 主界面优化 & 封面扩充</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>设置入口改为左上角 64×64 像素风齿轮图标，悬停旋转发光</li>
+          <li>镜像功能、调试面板入口整合进设置页面内部，主界面更简洁</li>
+          <li>移除「加载已有谱面」按钮，精简主界面按钮数量</li>
+          <li>统一所有主界面按钮大小，三层按钮（主操作/次要/工具栏）通过 CSS 统一控制</li>
+          <li>新增 74 首歌曲封面图（256×256 JPG 压缩，4~18KB），选曲面板视觉大幅提升</li>
+        </ul>
+      </div>
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v55 — 开始界面背景 & 封面优化</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>开始界面背景替换为照片墙（startbg.jpg），按钮区域局部高斯模糊突出焦点</li>
+          <li>使用 mask-image + radial-gradient 实现椭圆形渐变模糊，边缘保持清晰</li>
+          <li>移除歌曲封面上的 CRT 扫描线叠加效果（.song-cover::after）</li>
+          <li>新增独立 #bgBlurOverlay 层解决 backdrop-filter 与 z-index 堆叠上下文冲突</li>
+        </ul>
+      </div>
       <div style="margin-bottom:18px;">
         <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v54 — 选曲面板 & 开始界面视觉重做</h3>
         <ul style="padding-left:18px;margin:0;">
@@ -651,8 +667,14 @@
       <label style="cursor:pointer;">
         <input type="checkbox" id="dualEffect" checked style="accent-color:#feca57;vertical-align:middle;"> 双押特效
       </label>
+      <label style="cursor:pointer;">
+        <input type="checkbox" id="mirrorCheck" style="accent-color:#9b59b6;vertical-align:middle;"> 镜像（左右反转）
+      </label>
     </div>
-    <button id="settingsBackBtn" class="pixel-btn" style="margin-top:20px;padding:12px 40px;font-size:clamp(14px,3.5vw,18px);">返回</button>
+    <div style="display:flex;gap:12px;margin-top:20px;align-items:center;">
+      <button id="settingsBackBtn" class="pixel-btn" style="padding:12px 40px;font-size:clamp(14px,3.5vw,18px);">返回</button>
+      <button id="debugBtn" class="pixel-btn" style="padding:12px 28px;font-size:clamp(12px,3vw,15px);">调试面板</button>
+    </div>
   </div>
   <canvas id="gameCanvas" tabindex="0"></canvas>
   <div id="uiOverlay" style="display:none;">
@@ -778,20 +800,9 @@
 <script src="tutorial.js"></script>
 <script src="debug.js"></script>
 <script>
-// === Song Panel: mosaic background + cover generation + card interaction ===
+// === Song Panel: cover generation + card interaction ===
 (function(){
-  // Mosaic checkerboard background
-  var COLS=12,ROWS=8,mc=document.createElement('canvas');
-  mc.width=COLS;mc.height=ROWS;
-  var mctx=mc.getContext('2d');
-  var cA=[210,165,100],cB=[155,95,60];
-  for(var y=0;y<ROWS;y++)for(var x=0;x<COLS;x++){
-    var c=(x+y)%2===0?cA:cB;
-    mctx.fillStyle='rgb('+c[0]+','+c[1]+','+c[2]+')';
-    mctx.fillRect(x,y,1,1);
-  }
-  var mEl=document.getElementById('mosaicBg');
-  if(mEl) mEl.style.backgroundImage='url('+mc.toDataURL()+')';
+  // Background is now CSS background-image (startbg.jpg), no mosaic needed
 
   // Build song list from presetSelect options
   var sel=document.getElementById('presetSelect');
@@ -843,7 +854,82 @@
   var toastTimer;
 
   // Map of songs that have real cover images
-  var coverMap={'引路星':'covers/引路星.jpg'};
+  var coverMap={
+    '引路星':'covers/引路星.jpg',
+    '予梦':'covers/予梦.jpg',
+    '不如化身刺猬':'covers/不如化身刺猬.jpg',
+    '出发':'covers/出发.jpg',
+    '冬愿':'covers/冬愿.jpg',
+    '故里小月光':'covers/故里小月光.jpg',
+    '过期凤梨':'covers/过期凤梨.jpg',
+    '寄给月亮的梦':'covers/寄给月亮的梦.jpg',
+    'sonder':'covers/sonder.jpg',
+    '你即银河':'covers/你即银河.jpg',
+    '你是被爱的':'covers/你是被爱的.jpg',
+    '冬眠':'covers/冬眠.jpg',
+    '到此一游':'covers/到此一游.jpg',
+    '南风说':'covers/南风说.jpg',
+    '吹灭小山河':'covers/吹灭小山河.jpg',
+    '唯一的苹果':'covers/唯一的苹果.jpg',
+    '圣贤书':'covers/圣贤书.jpg',
+    '天光':'covers/天光.jpg',
+    '天和山雨雪':'covers/天和山雨雪.jpg',
+    '天空':'covers/天空.jpg',
+    '夭娘':'covers/夭娘.jpg',
+    '奔赴':'covers/奔赴.jpg',
+    '守在圆地爱你':'covers/守在圆地爱你.jpg',
+    '小女司南':'covers/小女司南.jpg',
+    '应怀酒':'covers/应怀酒.jpg',
+    '思有邪':'covers/思有邪.jpg',
+    '我还记得':'covers/我还记得.jpg',
+    '时间会回答':'covers/时间会回答.jpg',
+    '星河万里':'covers/星河万里.jpg',
+    '春三月':'covers/春三月.jpg',
+    '春不晚':'covers/春不晚.jpg',
+    '春日信笺':'covers/春日信笺.jpg',
+    '江湖行客':'covers/江湖行客.jpg',
+    '游侠不是侠':'covers/游侠不是侠.jpg',
+    '烟雨行舟':'covers/烟雨行舟.jpg',
+    '苏东坡':'covers/苏东坡.jpg',
+    '苏州人家':'covers/苏州人家.jpg',
+    '蜕':'covers/蜕.jpg',
+    '逃不掉':'covers/逃不掉.jpg',
+    '逆流雨':'covers/逆流雨.jpg',
+    '你相信平行时空吗':'covers/你相信平行时空吗.jpg',
+    '尔尔':'covers/尔尔.jpg',
+    '星星在唱歌':'covers/星星在唱歌.jpg',
+    '一拜天地':'covers/一拜天地.jpg',
+    '一晃又一年':'covers/一晃又一年.jpg',
+    '人间不值得':'covers/人间不值得.jpg',
+    '拜无忧':'covers/拜无忧.jpg',
+    '东风志':'covers/东风志.jpg',
+    '勾指起誓':'covers/勾指起誓.jpg',
+    '千秋此意':'covers/千秋此意.jpg',
+    '双生':'covers/双生.jpg',
+    '双面你我':'covers/双面你我.jpg',
+    '和风赴你':'covers/和风赴你.jpg',
+    '喧嚣':'covers/喧嚣.jpg',
+    '如此漫长一生':'covers/如此漫长一生.jpg',
+    '岁方秋':'covers/岁方秋.jpg',
+    '摇橹食光':'covers/摇橹食光.jpg',
+    '捉迷藏':'covers/捉迷藏.jpg',
+    '梦与星海之间':'covers/梦与星海之间.jpg',
+    '梨园小记':'covers/梨园小记.jpg',
+    '泪的告白':'covers/泪的告白.jpg',
+    '清零':'covers/清零.jpg',
+    '烟火焚':'covers/烟火焚.jpg',
+    '白驹':'covers/白驹.jpg',
+    '离忧':'covers/离忧.jpg',
+    '秋风词':'covers/秋风词.jpg',
+    '絮咏歌':'covers/絮咏歌.jpg',
+    '谓风':'covers/谓风.jpg',
+    '风过谢桃花':'covers/风过谢桃花.jpg',
+    '飞舟':'covers/飞舟.jpg',
+    '飞花入瑟':'covers/飞花入瑟.jpg',
+    '飞鸟来信':'covers/飞鸟来信.jpg',
+    'escaping_gravity':'covers/escaping_gravity.jpg',
+    '一纸山河':'covers/一纸山河.jpg'
+  };
 
   songs.forEach(function(song,i){
     var card=document.createElement('div');
@@ -896,6 +982,55 @@
     activeIdx=0;
     sel.selectedIndex=songs[0].index;
     sel.dispatchEvent(new Event('change'));
+  }
+})();
+</script>
+<script>
+// Draw pixel-art gear icon on gearCanvas
+(function(){
+  var c=document.getElementById('gearCanvas');
+  if(!c)return;
+  var ctx=c.getContext('2d');
+  ctx.imageSmoothingEnabled=false;
+  // 16x16 pixel grid scaled to 64x64 (4x)
+  var s=4;
+  var gear=[
+    '......XXXX......',
+    '......X..X......',
+    '..XX..X..X..XX..',
+    '..X.XXX..XXX.X..',
+    '..X.X......X.X..',
+    '..X.X......X.X..',
+    'XXX.X......X.XXX',
+    'X....XXXXXX....X',
+    'X....XXXXXX....X',
+    'XXX.X......X.XXX',
+    '..X.X......X.X..',
+    '..X.X......X.X..',
+    '..X.XXX..XXX.X..',
+    '..XX..X..X..XX..',
+    '......X..X......',
+    '......XXXX......'
+  ];
+  for(var y=0;y<16;y++){
+    for(var x=0;x<16;x++){
+      if(gear[y][x]==='X'){
+        // slight color variation for depth
+        var dist=Math.sqrt(Math.pow(x-7.5,2)+Math.pow(y-7.5,2));
+        var bright=200+Math.floor(55*(1-dist/10));
+        bright=Math.max(180,Math.min(255,bright));
+        ctx.fillStyle='rgb('+bright+','+Math.floor(bright*0.85)+','+Math.floor(bright*0.6)+')';
+        ctx.fillRect(x*s,y*s,s,s);
+      }
+    }
+  }
+  // Center hole (darker)
+  for(var y=6;y<10;y++){
+    for(var x=6;x<10;x++){
+      if((x===6||x===9)&&(y===6||y===9))continue; // round corners
+      ctx.fillStyle='rgba(15,12,41,0.8)';
+      ctx.fillRect(x*s,y*s,s,s);
+    }
   }
 })();
 </script>

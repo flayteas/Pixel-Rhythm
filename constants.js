@@ -244,7 +244,21 @@ const startBtn = document.getElementById('startBtn');
 const fileNameEl = document.getElementById('fileName');
 const presetSelect = document.getElementById('presetSelect');
 const presetStatus = document.getElementById('presetStatus');
+const loadStatusEl = document.getElementById('loadStatus');
 const loadChartBtn = document.getElementById('loadChartBtn');
+
+// Sync status text to visible #loadStatus element
+let _statusBase = '';
+function setStatus(text) {
+  _statusBase = text;
+  if (presetStatus) presetStatus.textContent = text;
+  if (loadStatusEl) loadStatusEl.textContent = text;
+}
+function setAnalysisStatus(suffix) {
+  const full = _statusBase + suffix;
+  if (presetStatus) presetStatus.textContent = full;
+  if (loadStatusEl) loadStatusEl.textContent = full;
+}
 let audioFile = null;
 let audioFileName = '';
 
@@ -253,7 +267,7 @@ presetSelect.addEventListener('change', async () => {
   if (!url) return;
   const songName = presetSelect.options[presetSelect.selectedIndex].text;
   presetSelect.disabled = true;
-  presetStatus.textContent = '正在加载「' + songName + '」...';
+  setStatus('正在加载「' + songName + '」...');
   try {
     const resp = await fetch(url);
     if (!resp.ok) throw new Error('HTTP ' + resp.status);
@@ -273,7 +287,7 @@ presetSelect.addEventListener('change', async () => {
         const pct = Math.min(99, Math.round(received / total * 100));
         const sizeMB = (received / 1048576).toFixed(1);
         const totalMB = (total / 1048576).toFixed(1);
-        presetStatus.textContent = '正在加载「' + songName + '」... ' + pct + '% (' + sizeMB + '/' + totalMB + 'MB)';
+        setStatus('正在加载「' + songName + '」... ' + pct + '% (' + sizeMB + '/' + totalMB + 'MB)');
       }
       blob = new Blob(chunks);
     } else {
@@ -284,13 +298,13 @@ presetSelect.addEventListener('change', async () => {
     audioFile = new File([blob], url, { type: mimeType });
     audioFileName = url;
     fileNameEl.textContent = '';
-    presetStatus.textContent = '「' + songName + '」已加载';
+    setStatus('「' + songName + '」已加载');
     startBtn.disabled = false;
     presetSelect.disabled = false;
     checkSavedChart();
     preAnalyzeAudio();
   } catch (err) {
-    presetStatus.textContent = '加载失败，请尝试本地上传';
+    setStatus('加载失败，请尝试本地上传');
     presetSelect.disabled = false;
     startBtn.disabled = true;
     audioFile = null;
@@ -304,7 +318,7 @@ audioInput.addEventListener('change', (e) => {
   audioFile = file;
   audioFileName = file.name;
   fileNameEl.textContent = file.name;
-  presetStatus.textContent = '';
+  setStatus(file.name);
   startBtn.disabled = false;
   checkSavedChart();
   preAnalyzeAudio();
@@ -334,9 +348,9 @@ let updateWorkerProgress = null;
 async function preAnalyzeAudio() {
   if (!audioFile || preAnalyzing) return;
   preAnalyzing = true;
-  presetStatus.textContent = (presetStatus.textContent || '') + ' (分析中...)';
+  setAnalysisStatus(' (分析中...)');
   updateWorkerProgress = function(pct, label) {
-    presetStatus.textContent = presetStatus.textContent.replace(/ \(分析中.*?\)/, '') + ` (分析中 ${pct}% ${label})`;
+    setAnalysisStatus(` (分析中 ${pct}% ${label})`);
   };
   try {
     const tmpCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -359,7 +373,7 @@ async function preAnalyzeAudio() {
     injectDualNotes(beats, currentDiff);
     enforceSpecialNoteLimits(beats, currentDiff, audioBuffer ? audioBuffer.duration : 180);
     if (audioFileName) saveChart(audioFileName, quantized);
-    presetStatus.textContent = presetStatus.textContent.replace(/ \(分析中.*?\)/, '') + ' (谱面已就绪)';
+    setAnalysisStatus(' (谱面已就绪)');
     const dp = document.getElementById('debugPanel');
     if (dp && dp.classList.contains('open')) {
       if (typeof updateDebugStatsExt === 'function') updateDebugStatsExt();
@@ -367,7 +381,7 @@ async function preAnalyzeAudio() {
     }
   } catch(e) {
     console.warn('Pre-analyze failed:', e);
-    presetStatus.textContent = presetStatus.textContent.replace(/ \(分析中.*?\)/, '');
+    setAnalysisStatus('');
   }
   preAnalyzing = false;
   updateWorkerProgress = null;
@@ -440,6 +454,7 @@ function checkSavedChart() {
   if (!audioFileName) return;
   const charts = getSavedCharts();
   const btn = document.getElementById('loadChartBtn');
+  if (!btn) return;
   const key = chartKey(audioFileName);
   if (charts[key]) {
     btn.style.display = 'inline-block';
@@ -449,11 +464,13 @@ function checkSavedChart() {
   }
 }
 let useLoadedChart = false;
-loadChartBtn.addEventListener('click', () => {
-  useLoadedChart = true;
-  loadChartBtn.style.display = 'none';
-  presetStatus.textContent = '将使用保存的谱面';
-});
+if (loadChartBtn) {
+  loadChartBtn.addEventListener('click', () => {
+    useLoadedChart = true;
+    loadChartBtn.style.display = 'none';
+    setStatus('将使用保存的谱面');
+  });
+}
 
 // Note offset slider (delay adjustment)
 let noteOffsetMs = -60;

@@ -1337,7 +1337,7 @@ document.addEventListener('webkitfullscreenchange', () => {
   setTimeout(() => { resize(); bgCache = null; bgCache2 = null; }, 200);
 });
 // ============ SETTINGS OVERLAY ============
-document.getElementById('settingsBtn').addEventListener('click', () => {
+document.getElementById('gearBtn').addEventListener('click', () => {
   document.getElementById('startScreen').style.display = 'none';
   document.getElementById('settingsOverlay').style.display = 'flex';
 });
