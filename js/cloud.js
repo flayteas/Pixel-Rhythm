@@ -388,6 +388,100 @@ const CloudSync = (function() {
     });
   }
 
+  // ---- Leaderboard ----
+  async function fetchLeaderboard(songKey) {
+    try {
+      const resp = await fetch(API_BASE + '/api/leaderboard/' + encodeURIComponent(songKey));
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.error);
+      return data.leaderboard || [];
+    } catch(e) {
+      console.warn('[Cloud] Leaderboard fetch failed:', e);
+      return [];
+    }
+  }
+
+  function showLeaderboard() {
+    // Determine current song + difficulty for the leaderboard key
+    const songFile = (typeof getCurrentSongFile === 'function') ? getCurrentSongFile() : '';
+    const diff = (typeof currentDiff !== 'undefined') ? currentDiff : 'normal';
+    if (!songFile) {
+      alert('请先选择一首歌曲');
+      return;
+    }
+    const songKey = songFile + '|' + diff;
+
+    // Get song display name
+    let songName = songFile;
+    const sel = document.getElementById('presetSelect');
+    if (sel) {
+      for (const opt of sel.options) {
+        if (opt.value === songFile) { songName = opt.textContent.replace(/\s*[★☆]\s*FC.*$/, ''); break; }
+      }
+    }
+    const diffLabels = { easy:'Easy', normal:'Normal', hard:'Hard', expert:'Expert' };
+
+    // Create or reuse overlay
+    let overlay = document.getElementById('leaderboardOverlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'leaderboardOverlay';
+      overlay.style.cssText = 'position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:25;background:rgba(15,12,41,0.97);';
+      document.getElementById('app').appendChild(overlay);
+    }
+    overlay.style.display = 'flex';
+
+    overlay.innerHTML = `
+      <h2 style="font-size:clamp(20px,5vw,28px);color:#feca57;margin:0 0 6px;letter-spacing:3px;">排行榜</h2>
+      <p style="color:#e0c3fc;font-size:14px;margin:0 0 4px;">${songName}</p>
+      <p style="color:#9b9ecf;font-size:12px;margin:0 0 16px;">${diffLabels[diff] || diff}</p>
+      <div id="lbContent" style="max-width:min(500px,92vw);width:100%;max-height:60vh;overflow-y:auto;padding:0 12px;">
+        <p style="color:#feca57;text-align:center;">加载中...</p>
+      </div>
+      <button id="lbBackBtn" class="pixel-btn" style="margin-top:16px;padding:12px 40px;font-size:clamp(14px,3.5vw,18px);">返回</button>
+    `;
+
+    document.getElementById('lbBackBtn').addEventListener('click', () => {
+      overlay.style.display = 'none';
+    });
+
+    // Fetch and render
+    fetchLeaderboard(songKey).then(board => {
+      const container = document.getElementById('lbContent');
+      if (!board || board.length === 0) {
+        container.innerHTML = '<p style="color:#8a7fb5;text-align:center;margin:40px 0;">暂无排行数据<br><span style="font-size:12px;">完成一次游戏并开启云同步即可上榜</span></p>';
+        return;
+      }
+
+      let html = `<table style="width:100%;border-collapse:collapse;font-size:13px;">
+        <thead><tr style="color:#9b9ecf;border-bottom:1px solid rgba(224,195,252,0.15);">
+          <th style="padding:8px 4px;text-align:center;width:36px;">#</th>
+          <th style="padding:8px 4px;text-align:left;">玩家</th>
+          <th style="padding:8px 4px;text-align:right;">分数</th>
+          <th style="padding:8px 4px;text-align:center;width:60px;">连击</th>
+          <th style="padding:8px 4px;text-align:center;width:36px;"></th>
+        </tr></thead><tbody>`;
+
+      board.forEach((entry, i) => {
+        const rankColor = i === 0 ? '#feca57' : i === 1 ? '#c0c0c0' : i === 2 ? '#cd7f32' : '#e0c3fc';
+        const rankIcon = i < 3 ? ['🥇','🥈','🥉'][i] : (i + 1);
+        const fcBadge = entry.isFC ? '<span style="color:#feca57;font-size:11px;" title="Full Combo">★</span>' : '';
+        const verifiedBadge = entry.verified ? '<span style="color:#51cf66;font-size:10px;" title="已验证">✓</span>' : '';
+
+        html += `<tr style="border-bottom:1px solid rgba(224,195,252,0.06);${i < 3 ? 'background:rgba(254,202,87,0.04);' : ''}">
+          <td style="padding:7px 4px;text-align:center;color:${rankColor};font-weight:${i<3?'bold':'normal'};">${rankIcon}</td>
+          <td style="padding:7px 4px;color:#e0c3fc;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${entry.name} ${fcBadge}</td>
+          <td style="padding:7px 4px;text-align:right;color:#fff;font-weight:bold;">${entry.score.toLocaleString()}</td>
+          <td style="padding:7px 4px;text-align:center;color:#9b9ecf;">${entry.maxCombo}</td>
+          <td style="padding:7px 4px;text-align:center;">${verifiedBadge}</td>
+        </tr>`;
+      });
+
+      html += '</tbody></table>';
+      container.innerHTML = html;
+    });
+  }
+
   return {
     init,
     signInAnonymously,
@@ -396,6 +490,8 @@ const CloudSync = (function() {
     pullFromCloud,
     syncAfterSave,
     showSyncDialog,
+    showLeaderboard,
+    fetchLeaderboard,
     isSignedIn,
     _pushTimer: null,
     _statusTimer: null,

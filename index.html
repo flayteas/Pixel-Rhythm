@@ -146,6 +146,7 @@
         <div id="utilActions">
           <button id="recordsBtn" class="pixel-btn">成绩记录</button>
           <button id="cloudSyncBtn" class="pixel-btn" onclick="CloudSync.showSyncDialog()">☁ 云同步</button>
+          <button id="leaderboardHomeBtn" class="pixel-btn" onclick="CloudSync.showLeaderboard()">排行榜</button>
           <button id="tutorialBtn" class="pixel-btn">教程</button>
           <button id="changelogBtn" class="pixel-btn">更新日志</button>
         </div>
@@ -714,6 +715,7 @@
     <p id="recordCompare" style="display:none;color:#feca57;font-size:14px;margin:6px 0;"></p>
     <p id="newRecordBadge" style="display:none;color:#ff6b6b;font-size:clamp(16px,4vw,22px);font-weight:bold;text-shadow:0 0 8px #ff6b6b;margin:4px 0;letter-spacing:2px;">NEW RECORD!</p>
     <button id="endReplayBtn" class="pixel-btn">再来一次</button>
+    <button id="leaderboardBtn" class="pixel-btn" onclick="CloudSync.showLeaderboard()">排行榜</button>
     <button id="restartBtn" class="pixel-btn">返回主页</button>
   </div>
   <div id="pauseOverlay">
@@ -1064,6 +1066,5 @@
   }
 })();
 </script>
-<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"75124c326cb447fe934cde04713ae013","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body>
 </html>
