@@ -86,12 +86,72 @@ const CloudSync = (function() {
       _updateUI('signed-in');
       // Push local data to cloud on first sign-in
       await pushToCloud();
+      // Show recovery code to user
+      if (data.recoveryCode) {
+        _showRecoveryCode(data.recoveryCode);
+      }
       return { uid: _userId };
     } catch(e) {
       console.warn('[Cloud] Registration failed:', e);
       _updateUI('error', '注册失败');
       return null;
     }
+  }
+
+  async function recoverAccount(code) {
+    try {
+      _updateUI('signing-in');
+      const data = await _api('POST', '/api/auth/recover', { recoveryCode: code });
+      _token = data.token;
+      _userId = data.userId;
+      _saveCredentials();
+      console.log('[Cloud] Account recovered:', _userId.slice(0, 8) + '...');
+      _updateUI('signed-in');
+      // Pull cloud data to local
+      await pullFromCloud();
+      return { uid: _userId };
+    } catch(e) {
+      console.warn('[Cloud] Recovery failed:', e);
+      _updateUI('error', '恢复失败');
+      return null;
+    }
+  }
+
+  function _showRecoveryCode(code) {
+    let overlay = document.getElementById('recoveryCodeOverlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'recoveryCodeOverlay';
+      overlay.style.cssText = 'position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:30;background:rgba(15,12,41,0.98);';
+      document.getElementById('app').appendChild(overlay);
+    }
+    overlay.style.display = 'flex';
+    overlay.innerHTML = `
+      <h2 style="font-size:clamp(18px,5vw,24px);color:#feca57;margin:0 0 12px;letter-spacing:2px;">请保存恢复码</h2>
+      <p style="color:#c8c0e0;font-size:13px;max-width:min(360px,85vw);text-align:center;line-height:1.7;margin:0 0 16px;">
+        清除浏览器缓存或换设备后，可用此恢复码找回云存档。<br>
+        <span style="color:#ff6b6b;font-size:12px;">恢复码仅显示一次，请立即截图或抄写！</span>
+      </p>
+      <div style="background:rgba(254,202,87,0.1);border:2px dashed #feca57;border-radius:12px;padding:16px 32px;margin:0 0 12px;">
+        <span id="recoveryCodeText" style="font-size:clamp(24px,7vw,36px);font-family:monospace;letter-spacing:6px;color:#feca57;font-weight:bold;user-select:all;">${code}</span>
+      </div>
+      <button id="copyRecoveryBtn" class="pixel-btn" style="padding:8px 24px;font-size:13px;margin:0 0 16px;">复制恢复码</button>
+      <button id="closeRecoveryBtn" class="pixel-btn" style="padding:12px 40px;font-size:clamp(14px,3.5vw,18px);">我已保存，关闭</button>
+    `;
+
+    document.getElementById('copyRecoveryBtn').addEventListener('click', () => {
+      try {
+        navigator.clipboard.writeText(code);
+        document.getElementById('copyRecoveryBtn').textContent = '已复制！';
+      } catch(e) {
+        // Fallback: select text
+        const el = document.getElementById('recoveryCodeText');
+        if (el) { const r = document.createRange(); r.selectNodeContents(el); const s = window.getSelection(); s.removeAllRanges(); s.addRange(r); }
+      }
+    });
+    document.getElementById('closeRecoveryBtn').addEventListener('click', () => {
+      overlay.style.display = 'none';
+    });
   }
 
   async function signOut() {
@@ -342,10 +402,14 @@ const CloudSync = (function() {
       content.innerHTML = '<p>登录后即可在多设备间同步你的游戏成绩和设置。</p><p style="font-size:12px;color:#8a7fb5;">点击下方按钮创建匿名账号，数据将自动上传到云端。</p>';
       actions.innerHTML = `
         <button class="pixel-btn" id="cloudAnonBtn" style="padding:10px 24px;font-size:14px;">创建云存档</button>
+        <button class="pixel-btn" id="cloudRecoverBtn" style="padding:10px 24px;font-size:13px;">恢复账号</button>
       `;
       document.getElementById('cloudAnonBtn').addEventListener('click', async () => {
         await signInAnonymously();
         _refreshDialog();
+      });
+      document.getElementById('cloudRecoverBtn').addEventListener('click', () => {
+        _showRecoverInput();
       });
       return;
     }
@@ -363,6 +427,7 @@ const CloudSync = (function() {
       <button class="pixel-btn" id="cloudPullBtn" style="padding:10px 24px;font-size:14px;">↓ 下载云端数据</button>
       <button class="pixel-btn" id="cloudPushBtn" style="padding:10px 24px;font-size:14px;">↑ 上传本地数据</button>
     `;
+    btns += `<button class="pixel-btn" id="cloudResetRecoveryBtn" style="padding:10px 24px;font-size:13px;">重置恢复码</button>`;
     btns += `<button class="pixel-btn" id="cloudLogoutBtn" style="padding:10px 24px;font-size:13px;">退出登录</button>`;
     actions.innerHTML = btns;
 
@@ -385,6 +450,72 @@ const CloudSync = (function() {
     document.getElementById('cloudLogoutBtn').addEventListener('click', async () => {
       await signOut();
       _refreshDialog();
+    });
+
+    document.getElementById('cloudResetRecoveryBtn').addEventListener('click', async () => {
+      setDialogStatus('正在生成新恢复码...', '#feca57');
+      try {
+        const data = await _api('POST', '/api/auth/reset-recovery');
+        if (data.recoveryCode) {
+          _showRecoveryCode(data.recoveryCode);
+          setDialogStatus('已生成新恢复码', '#51cf66');
+        }
+      } catch(e) {
+        setDialogStatus('生成失败', '#ff6b6b');
+      }
+    });
+  }
+
+  function _showRecoverInput() {
+    const content = document.getElementById('cloudDialogContent');
+    const actions = document.getElementById('cloudDialogActions');
+    if (!content || !actions) return;
+
+    content.innerHTML = `
+      <p style="color:#feca57;">输入恢复码</p>
+      <p style="font-size:12px;color:#8a7fb5;margin-bottom:12px;">输入注册时获得的 8 位恢复码来找回账号</p>
+      <input id="recoveryInput" type="text" maxlength="8" placeholder="如：ABCD1234"
+        style="width:200px;padding:10px 16px;font-size:20px;font-family:monospace;letter-spacing:4px;text-align:center;
+        background:rgba(254,202,87,0.08);border:2px solid rgba(254,202,87,0.3);border-radius:8px;color:#feca57;outline:none;
+        text-transform:uppercase;" autocomplete="off" spellcheck="false">
+      <p id="recoverStatus" style="font-size:13px;min-height:20px;color:#feca57;margin-top:8px;"></p>
+    `;
+    actions.innerHTML = `
+      <button class="pixel-btn" id="recoverSubmitBtn" style="padding:10px 24px;font-size:14px;">确认恢复</button>
+      <button class="pixel-btn" id="recoverBackBtn" style="padding:10px 24px;font-size:13px;">返回</button>
+    `;
+
+    const input = document.getElementById('recoveryInput');
+    const statusEl = document.getElementById('recoverStatus');
+    input.focus();
+
+    document.getElementById('recoverSubmitBtn').addEventListener('click', async () => {
+      const code = input.value.trim().toUpperCase();
+      if (!code || code.length < 6) {
+        statusEl.textContent = '请输入完整的恢复码';
+        statusEl.style.color = '#ff6b6b';
+        return;
+      }
+      statusEl.textContent = '正在恢复...';
+      statusEl.style.color = '#feca57';
+      const result = await recoverAccount(code);
+      if (result) {
+        statusEl.textContent = '恢复成功！';
+        statusEl.style.color = '#51cf66';
+        setTimeout(() => _refreshDialog(), 1500);
+      } else {
+        statusEl.textContent = '恢复码无效或不存在';
+        statusEl.style.color = '#ff6b6b';
+      }
+    });
+
+    document.getElementById('recoverBackBtn').addEventListener('click', () => {
+      _refreshDialog();
+    });
+
+    // Allow Enter key
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') document.getElementById('recoverSubmitBtn').click();
     });
   }
 
@@ -485,6 +616,7 @@ const CloudSync = (function() {
   return {
     init,
     signInAnonymously,
+    recoverAccount,
     signOut,
     pushToCloud,
     pullFromCloud,

@@ -1,5 +1,5 @@
 // Pixel Rhythm - Pages Functions API (catch-all)
-// Handles: /api/auth/register, /api/auth/verify, /api/sync, /api/leaderboard/*
+// Handles: /api/auth/register, /api/auth/verify, /api/auth/recover, /api/sync, /api/leaderboard/*
 
 function jsonResp(data, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -28,6 +28,14 @@ async function getUser(request, db) {
   return row;
 }
 
+function generateRecoveryCode() {
+  // 8-char uppercase alphanumeric (no ambiguous chars: 0/O, 1/I/L)
+  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+  const arr = new Uint8Array(8);
+  crypto.getRandomValues(arr);
+  return Array.from(arr).map(b => chars[b % chars.length]).join('');
+}
+
 export async function onRequest(context) {
   const { request, env } = context;
   const url = new URL(request.url);
@@ -40,11 +48,13 @@ export async function onRequest(context) {
       const userId = crypto.randomUUID();
       const token = crypto.randomUUID() + crypto.randomUUID();
       const hash = await hashToken(token);
+      const recoveryCode = generateRecoveryCode();
+      const recoveryHash = await hashToken(recoveryCode);
       const now = Date.now();
       await db.prepare(
-        'INSERT INTO users (id, token_hash, auth_type, created_at, updated_at) VALUES (?, ?, ?, ?, ?)'
-      ).bind(userId, hash, 'anonymous', now, now).run();
-      return jsonResp({ ok: true, userId, token });
+        'INSERT INTO users (id, token_hash, recovery_hash, auth_type, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)'
+      ).bind(userId, hash, recoveryHash, 'anonymous', now, now).run();
+      return jsonResp({ ok: true, userId, token, recoveryCode });
     }
 
     // GET /api/auth/verify
@@ -52,6 +62,34 @@ export async function onRequest(context) {
       const user = await getUser(request, db);
       if (!user) return errResp('Unauthorized', 401);
       return jsonResp({ ok: true, userId: user.id, displayName: user.display_name, authType: user.auth_type });
+    }
+
+    // POST /api/auth/recover
+    if (path === '/api/auth/recover' && request.method === 'POST') {
+      const body = await request.json();
+      const code = (body.recoveryCode || '').trim().toUpperCase();
+      if (!code || code.length < 6) return errResp('恢复码无效', 400);
+      const codeHash = await hashToken(code);
+      const user = await db.prepare('SELECT id FROM users WHERE recovery_hash = ?').bind(codeHash).first();
+      if (!user) return errResp('恢复码不存在', 404);
+      // Issue new token, keep recovery code unchanged
+      const newToken = crypto.randomUUID() + crypto.randomUUID();
+      const newHash = await hashToken(newToken);
+      const now = Date.now();
+      await db.prepare(
+        'UPDATE users SET token_hash=?, updated_at=? WHERE id=?'
+      ).bind(newHash, now, user.id).run();
+      return jsonResp({ ok: true, userId: user.id, token: newToken });
+    }
+
+    // POST /api/auth/reset-recovery (generate new recovery code for logged-in user)
+    if (path === '/api/auth/reset-recovery' && request.method === 'POST') {
+      const user = await getUser(request, db);
+      if (!user) return errResp('Unauthorized', 401);
+      const newRecoveryCode = generateRecoveryCode();
+      const newRecoveryHash = await hashToken(newRecoveryCode);
+      await db.prepare('UPDATE users SET recovery_hash=?, updated_at=? WHERE id=?').bind(newRecoveryHash, Date.now(), user.id).run();
+      return jsonResp({ ok: true, recoveryCode: newRecoveryCode });
     }
 
     // GET /api/sync

@@ -3,6 +3,7 @@
 CREATE TABLE IF NOT EXISTS users (
   id TEXT PRIMARY KEY,
   token_hash TEXT NOT NULL UNIQUE,
+  recovery_hash TEXT,
   display_name TEXT DEFAULT '',
   auth_type TEXT DEFAULT 'anonymous',
   created_at INTEGER NOT NULL,
