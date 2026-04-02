@@ -1,4 +1,9 @@
 // notes.js — Note classes & game judgment
+
+// Default note colors by direction
+const NOTE_COLOR_LEFT = '#48dbfb';
+const NOTE_COLOR_RIGHT = '#ff6b6b';
+
 // ============ NOTE CLASS (with per-note color) ============
 class Note {
   constructor(beatTime, dir, color) {
@@ -13,8 +18,7 @@ class Note {
     this.spawnDist = Math.max(W * 0.45, H * 0.45, 280);
     this.angle = dir === 0 ? Math.PI : 0;
     this.dx = dir === 0 ? -1 : 1; // pre-cached cos(angle)
-    this.dy = 0;                   // pre-cached sin(angle)
-    this.color = color || (dir === 0 ? '#48dbfb' : '#ff6b6b');
+    this.color = color || (dir === 0 ? NOTE_COLOR_LEFT : NOTE_COLOR_RIGHT);
     this.size = 22;
     this.isDual = false;
     this.yOffset = 0;
@@ -27,7 +31,7 @@ class Note {
     const dist = this.spawnDist * (1 - progress);
     const visualDist = dist + JUDGE_DIST;
     const x = charX + this.dx * visualDist;
-    const y = charY + this.dy * visualDist + this.yOffset;
+    const y = charY + this.yOffset;
     return { x, y, progress, dist: visualDist };
   }
   draw(currentTime) {
@@ -42,7 +46,7 @@ class Note {
       ctx.lineWidth = 1;
       ctx.beginPath();
       ctx.moveTo(x, y);
-      ctx.lineTo(charX + this.dx * (dist + 30), charY + this.dy * (dist + 30) + this.yOffset);
+      ctx.lineTo(charX + this.dx * (dist + 30), charY + this.yOffset);
       ctx.stroke();
       ctx.globalAlpha = 1;
     }
@@ -123,10 +127,8 @@ class Note {
     // Tip marker: red dot at the judgment point on the note
     if (showGuideDots) {
       const hs = this.size;
-      const dx = this.dx;
-      const dy = this.dy;
-      const frontX = x - dx * hs;
-      const frontY = y - dy * hs;
+      const frontX = x - this.dx * hs;
+      const frontY = y;
       ctx.fillStyle = '#ff3333';
       ctx.globalAlpha = alpha * 0.9;
       ctx.beginPath(); ctx.arc(frontX, frontY, 3, 0, Math.PI * 2); ctx.fill();
@@ -152,8 +154,7 @@ class HoldNote {
     this.spawnDist = Math.max(W * 0.45, H * 0.45, 280);
     this.angle = dir === 0 ? Math.PI : 0;
     this.dx = dir === 0 ? -1 : 1;
-    this.dy = 0;
-    this.color = color || (dir === 0 ? '#48dbfb' : '#ff6b6b');
+    this.color = color || (dir === 0 ? NOTE_COLOR_LEFT : NOTE_COLOR_RIGHT);
     this.size = 22;
     this._holding = false;
     this._startJudged = false;
@@ -178,7 +179,7 @@ class HoldNote {
   _getPosForTime(beatTime, currentTime) {
     const { dist, progress } = this._getDistForTime(beatTime, currentTime);
     const x = charX + this.dx * dist;
-    const y = charY + this.dy * dist + this.yOffset;
+    const y = charY + this.yOffset;
     return { x, y, progress, dist };
   }
   draw(currentTime) {
@@ -191,7 +192,7 @@ class HoldNote {
       const shrink = 1 - t * 0.5;
       const headDist = JUDGE_DIST;
       const hx = charX + this.dx * headDist;
-      const hy = charY + this.dy * headDist;
+      const hy = charY + this.yOffset;
       ctx.save();
       ctx.globalAlpha = fadeAlpha;
       ctx.translate(hx, hy);
@@ -211,7 +212,6 @@ class HoldNote {
 
     const alpha = Math.min(1, Math.max(0.2, startPos.progress * 1.5));
     const dx = this.dx;
-    const dy = this.dy;
 
     // Clamp head to judgment arc if start already passed
     let headDist = startPos.dist;
@@ -222,9 +222,9 @@ class HoldNote {
     if (tailDist > maxDist) tailDist = maxDist;
 
     const headX = charX + dx * headDist;
-    const headY = charY + dy * headDist;
+    const headY = charY + this.yOffset;
     const tailX = charX + dx * tailDist;
-    const tailY = charY + dy * tailDist;
+    const tailY = charY + this.yOffset;
 
     // Draw hold body (thick line with rounded caps)
     const bodyWidth = this._holding ? 16 : 12;
@@ -235,10 +235,9 @@ class HoldNote {
 
     // Gradient along the hold body
     const grad = ctx.createLinearGradient(headX, headY, tailX, tailY);
-    const baseColor = this.color;
-    const holdColor = this._holding ? '#feca57' : baseColor;
+    const holdColor = this._holding ? '#feca57' : this.color;
     grad.addColorStop(0, holdColor);
-    grad.addColorStop(1, baseColor);
+    grad.addColorStop(1, this.color);
     ctx.strokeStyle = grad;
     ctx.beginPath();
     ctx.moveTo(headX, headY);
@@ -385,7 +384,7 @@ function detectDualNotes(beatsArr, threshold) {
     if (used.has(sorted[i])) continue;
     const a = sorted[i];
     if (a.type === 'hold') continue; // hold notes cannot be part of dual-press
-    const tA = a.type === 'hold' ? a.startTime : a.time;
+    const tA = a.time; // guaranteed to be tap at this point
     let bestJ = -1, bestDiff = Infinity;
     for (let j = i + 1; j < sorted.length; j++) {
       const b = sorted[j];
@@ -411,12 +410,10 @@ function detectDualNotes(beatsArr, threshold) {
     }
     if (bestJ >= 0 && bestDiff <= th) {
       const b = sorted[bestJ];
-      const tA2 = a.type === 'hold' ? a.startTime : a.time;
-      const tB2 = b.type === 'hold' ? b.startTime : b.time;
       // Align both notes to the same time (average), backup original time first
-      const avg = (tA2 + tB2) / 2;
-      a._preDualTime = tA2;
-      b._preDualTime = tB2;
+      const avg = (tA + (b.type === 'hold' ? b.startTime : b.time)) / 2;
+      a._preDualTime = tA;
+      b._preDualTime = b.type === 'hold' ? b.startTime : b.time;
       if (a.type === 'hold') a.startTime = avg; else a.time = avg;
       if (b.type === 'hold') b.startTime = avg; else b.time = avg;
       a.isDual = true;  b.isDual = true;
@@ -476,7 +473,7 @@ function injectDualNotes(beatsArr, diff) {
   for (const idx of singles) {
     const b = beatsArr[idx];
     if (b.type === 'hold') continue; // never inject duals on hold notes
-    const t = b.type === 'hold' ? b.startTime : b.time;
+    const t = b.time; // guaranteed to be tap at this point
     if (isDuringHold(t)) continue; // skip notes that overlap with a hold's duration
     // Check no other note on the opposite side is too close
     let tooClose = false;
@@ -522,16 +519,12 @@ function injectDualNotes(beatsArr, diff) {
       // Create a mirrored twin note
       const twin = { ...b };
       twin.dir = b.dir === 0 ? 1 : 0;
-      twin.color = b.color || '#48dbfb';
+      twin.color = b.color || NOTE_COLOR_LEFT;
       twin.isDual = true;
       twin._dualPairId = pairId;
       twin.yOffset = -12;
       twin._spawned = false;
       twin._injectedTwin = true; // mark as injected for limit enforcement
-
-      // Hold notes are already excluded from candidates above;
-      // double-check: skip if source is a hold note
-      if (b.type === 'hold') continue;
 
       b.isDual = true;
       b._dualPairId = pairId;
@@ -799,7 +792,7 @@ function processTapBatch(points) {
   if (countdownActive || _resumeCountdownActive) return;
 
   charBounce = 1;
-  try { if (navigator.vibrate) navigator.vibrate(15); } catch(e) {}
+  try { if (navigator.vibrate) navigator.vibrate(15); } catch(e) { /* vibrate not supported */ }
 
   _batchConsumed = new Set();
   for (const p of points) {

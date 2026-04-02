@@ -15,6 +15,7 @@ const CloudSync = (function() {
   let _userId = null;
   let _initialized = false;
   let _syncing = false;
+  let _displayName = null;
 
   // ---- Initialization ----
   function init() {
@@ -64,6 +65,7 @@ const CloudSync = (function() {
       _updateUI('signing-in');
       const data = await _api('GET', '/api/auth/verify');
       _userId = data.userId;
+      _displayName = data.displayName || null;
       console.log('[Cloud] Token verified, user:', _userId.slice(0, 8) + '...');
       _updateUI('signed-in');
       // Auto-pull on reconnect
@@ -420,6 +422,14 @@ const CloudSync = (function() {
     content.innerHTML = `
       <p style="color:#51cf66;">已连接云端</p>
       <p style="font-size:11px;color:#8a7fb5;">设备 ID: ${uid}</p>
+      <div style="margin:10px 0;display:flex;align-items:center;justify-content:center;gap:6px;">
+        <label style="color:#c8c0e0;font-size:13px;">昵称:</label>
+        <input id="cloudNickInput" type="text" maxlength="20" placeholder="匿名玩家"
+          style="width:140px;padding:6px 10px;font-size:13px;font-family:inherit;
+          background:rgba(254,202,87,0.08);border:2px solid rgba(254,202,87,0.3);border-radius:4px;color:#feca57;outline:none;"
+          autocomplete="off" spellcheck="false">
+        <button class="pixel-btn" id="cloudNickSaveBtn" style="padding:5px 12px;font-size:12px;">保存</button>
+      </div>
       <p id="cloudDialogStatus" style="font-size:13px;min-height:20px;color:#feca57;margin-top:8px;"></p>
     `;
 
@@ -462,6 +472,22 @@ const CloudSync = (function() {
         }
       } catch(e) {
         setDialogStatus('生成失败', '#ff6b6b');
+      }
+    });
+
+    const nickInput = document.getElementById('cloudNickInput');
+    if (nickInput && _displayName) nickInput.value = _displayName;
+
+    document.getElementById('cloudNickSaveBtn').addEventListener('click', async () => {
+      const input = document.getElementById('cloudNickInput');
+      const name = input.value.trim();
+      if (!name) { setDialogStatus('请输入昵称', '#ff6b6b'); return; }
+      setDialogStatus('保存中...', '#feca57');
+      try {
+        const data = await _api('PUT', '/api/auth/display-name', { displayName: name });
+        setDialogStatus('昵称已保存: ' + data.displayName, '#51cf66');
+      } catch(e) {
+        setDialogStatus('保存失败: ' + e.message, '#ff6b6b');
       }
     });
   }
@@ -533,25 +559,6 @@ const CloudSync = (function() {
   }
 
   function showLeaderboard() {
-    // Determine current song + difficulty for the leaderboard key
-    const songFile = (typeof getCurrentSongFile === 'function') ? getCurrentSongFile() : '';
-    const diff = (typeof currentDiff !== 'undefined') ? currentDiff : 'normal';
-    if (!songFile) {
-      alert('请先选择一首歌曲');
-      return;
-    }
-    const songKey = songFile + '|' + diff;
-
-    // Get song display name
-    let songName = songFile;
-    const sel = document.getElementById('presetSelect');
-    if (sel) {
-      for (const opt of sel.options) {
-        if (opt.value === songFile) { songName = opt.textContent.replace(/\s*[★☆]\s*FC.*$/, ''); break; }
-      }
-    }
-    const diffLabels = { easy:'Easy', normal:'Normal', hard:'Hard', expert:'Expert' };
-
     // Create or reuse overlay
     let overlay = document.getElementById('leaderboardOverlay');
     if (!overlay) {
@@ -562,55 +569,92 @@ const CloudSync = (function() {
     }
     overlay.style.display = 'flex';
 
+    // Build song options from presetSelect
+    const sel = document.getElementById('presetSelect');
+    let songOpts = '';
+    if (sel) {
+      for (const opt of sel.options) {
+        if (!opt.value) continue;
+        const name = opt.textContent.replace(/\s*[★☆]\s*FC.*$/, '');
+        songOpts += '<option value="' + opt.value + '">' + name + '</option>';
+      }
+    }
+
+    // Default to current song+diff if available
+    const curSong = (typeof getCurrentSongFile === 'function') ? getCurrentSongFile() : '';
+    const curDiff = (typeof currentDiff !== 'undefined') ? currentDiff : 'normal';
+
     overlay.innerHTML = `
-      <h2 style="font-size:clamp(20px,5vw,28px);color:#feca57;margin:0 0 6px;letter-spacing:3px;">排行榜</h2>
-      <p style="color:#e0c3fc;font-size:14px;margin:0 0 4px;">${songName}</p>
-      <p style="color:#9b9ecf;font-size:12px;margin:0 0 16px;">${diffLabels[diff] || diff}</p>
-      <div id="lbContent" style="max-width:min(500px,92vw);width:100%;max-height:60vh;overflow-y:auto;padding:0 12px;">
+      <h2 style="font-size:clamp(20px,5vw,28px);color:#feca57;margin:0 0 12px;letter-spacing:3px;">排行榜</h2>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:12px;max-width:min(500px,92vw);">
+        <select id="lbSongSelect" style="flex:1;min-width:140px;font-family:inherit;font-size:13px;padding:6px 10px;background:#302b63;color:#fff;border:2px solid #9b59b6;border-radius:0;cursor:pointer;">
+          ${songOpts}
+        </select>
+        <select id="lbDiffSelect" style="width:100px;font-family:inherit;font-size:13px;padding:6px 10px;background:#302b63;color:#fff;border:2px solid #9b59b6;border-radius:0;cursor:pointer;">
+          <option value="easy">Easy</option>
+          <option value="normal">Normal</option>
+          <option value="hard">Hard</option>
+          <option value="expert">Expert</option>
+        </select>
+      </div>
+      <div id="lbContent" style="max-width:min(500px,92vw);width:100%;max-height:55vh;overflow-y:auto;padding:0 12px;">
         <p style="color:#feca57;text-align:center;">加载中...</p>
       </div>
       <button id="lbBackBtn" class="pixel-btn" style="margin-top:16px;padding:12px 40px;font-size:clamp(14px,3.5vw,18px);">返回</button>
     `;
 
-    document.getElementById('lbBackBtn').addEventListener('click', () => {
-      overlay.style.display = 'none';
-    });
+    // Set defaults
+    const songSel = document.getElementById('lbSongSelect');
+    const diffSel = document.getElementById('lbDiffSelect');
+    if (curSong && songSel) { songSel.value = curSong; }
+    if (curDiff && diffSel) { diffSel.value = curDiff; }
 
-    // Fetch and render
-    fetchLeaderboard(songKey).then(board => {
+    // Render function
+    function renderBoard() {
+      const songFile = songSel.value;
+      const diff = diffSel.value;
+      if (!songFile) return;
+      const songKey = songFile + '|' + diff;
       const container = document.getElementById('lbContent');
-      if (!board || board.length === 0) {
-        container.innerHTML = '<p style="color:#8a7fb5;text-align:center;margin:40px 0;">暂无排行数据<br><span style="font-size:12px;">完成一次游戏并开启云同步即可上榜</span></p>';
-        return;
-      }
+      container.innerHTML = '<p style="color:#feca57;text-align:center;">加载中...</p>';
 
-      let html = `<table style="width:100%;border-collapse:collapse;font-size:13px;">
-        <thead><tr style="color:#9b9ecf;border-bottom:1px solid rgba(224,195,252,0.15);">
-          <th style="padding:8px 4px;text-align:center;width:36px;">#</th>
-          <th style="padding:8px 4px;text-align:left;">玩家</th>
-          <th style="padding:8px 4px;text-align:right;">分数</th>
-          <th style="padding:8px 4px;text-align:center;width:60px;">连击</th>
-          <th style="padding:8px 4px;text-align:center;width:36px;"></th>
-        </tr></thead><tbody>`;
-
-      board.forEach((entry, i) => {
-        const rankColor = i === 0 ? '#feca57' : i === 1 ? '#c0c0c0' : i === 2 ? '#cd7f32' : '#e0c3fc';
-        const rankIcon = i < 3 ? ['🥇','🥈','🥉'][i] : (i + 1);
-        const fcBadge = entry.isFC ? '<span style="color:#feca57;font-size:11px;" title="Full Combo">★</span>' : '';
-        const verifiedBadge = entry.verified ? '<span style="color:#51cf66;font-size:10px;" title="已验证">✓</span>' : '';
-
-        html += `<tr style="border-bottom:1px solid rgba(224,195,252,0.06);${i < 3 ? 'background:rgba(254,202,87,0.04);' : ''}">
-          <td style="padding:7px 4px;text-align:center;color:${rankColor};font-weight:${i<3?'bold':'normal'};">${rankIcon}</td>
-          <td style="padding:7px 4px;color:#e0c3fc;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${entry.name} ${fcBadge}</td>
-          <td style="padding:7px 4px;text-align:right;color:#fff;font-weight:bold;">${entry.score.toLocaleString()}</td>
-          <td style="padding:7px 4px;text-align:center;color:#9b9ecf;">${entry.maxCombo}</td>
-          <td style="padding:7px 4px;text-align:center;">${verifiedBadge}</td>
-        </tr>`;
+      fetchLeaderboard(songKey).then(board => {
+        if (!board || board.length === 0) {
+          container.innerHTML = '<p style="color:#8a7fb5;text-align:center;margin:40px 0;">暂无排行数据<br><span style="font-size:12px;">完成一次游戏并开启云同步即可上榜</span></p>';
+          return;
+        }
+        let html = `<table style="width:100%;border-collapse:collapse;font-size:13px;">
+          <thead><tr style="color:#9b9ecf;border-bottom:1px solid rgba(224,195,252,0.15);">
+            <th style="padding:8px 4px;text-align:center;width:36px;">#</th>
+            <th style="padding:8px 4px;text-align:left;">玩家</th>
+            <th style="padding:8px 4px;text-align:right;">分数</th>
+            <th style="padding:8px 4px;text-align:center;width:60px;">连击</th>
+            <th style="padding:8px 4px;text-align:center;width:36px;"></th>
+          </tr></thead><tbody>`;
+        board.forEach((entry, i) => {
+          const rankColor = i === 0 ? '#feca57' : i === 1 ? '#c0c0c0' : i === 2 ? '#cd7f32' : '#e0c3fc';
+          const rankIcon = i < 3 ? ['🥇','🥈','🥉'][i] : (i + 1);
+          const fcBadge = entry.isFC ? '<span style="color:#feca57;font-size:11px;" title="Full Combo">★</span>' : '';
+          const verifiedBadge = entry.verified ? '<span style="color:#51cf66;font-size:10px;" title="已验证">✓</span>' : '';
+          html += `<tr style="border-bottom:1px solid rgba(224,195,252,0.06);${i < 3 ? 'background:rgba(254,202,87,0.04);' : ''}">
+            <td style="padding:7px 4px;text-align:center;color:${rankColor};font-weight:${i<3?'bold':'normal'};">${rankIcon}</td>
+            <td style="padding:7px 4px;color:#e0c3fc;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${entry.name} ${fcBadge}</td>
+            <td style="padding:7px 4px;text-align:right;color:#fff;font-weight:bold;">${entry.score.toLocaleString()}</td>
+            <td style="padding:7px 4px;text-align:center;color:#9b9ecf;">${entry.maxCombo}</td>
+            <td style="padding:7px 4px;text-align:center;">${verifiedBadge}</td>
+          </tr>`;
+        });
+        html += '</tbody></table>';
+        container.innerHTML = html;
       });
+    }
 
-      html += '</tbody></table>';
-      container.innerHTML = html;
-    });
+    songSel.addEventListener('change', renderBoard);
+    diffSel.addEventListener('change', renderBoard);
+    document.getElementById('lbBackBtn').addEventListener('click', () => { overlay.style.display = 'none'; });
+
+    // Initial load
+    renderBoard();
   }
 
   return {

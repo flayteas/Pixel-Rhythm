@@ -56,7 +56,7 @@ function getSpecialLimits(diff, durationSec) {
   };
 }
 let currentDiff = 'normal';
-// Legacy time windows kept for chart save/load compatibility
+// Time windows (ms) — used by applyDifficulty() for chart save/load compatibility
 let PERFECT_WINDOW = 45, GOOD_WINDOW = 90, HIT_WINDOW = 150;
 let NOTE_TRAVEL_TIME = 2.8;
 let DUAL_HOLD_THRESHOLD = 0.12; // seconds (120ms) — dual-press detection window (base)
@@ -127,6 +127,7 @@ let bgTransDir = 0;         // 1 = going to bg2, -1 = going back to bg1
 const BG_TRANS_DUR = 0.6;   // seconds (short dim transition)
 
 // ============ RESIZE & CACHE BUILDERS ============
+let bgCache2 = null;
 function resize() {
   dpr = Math.min(window.devicePixelRatio || 1, 2);
   W = window.innerWidth;
@@ -170,8 +171,7 @@ function getBgCache() {
   bgCache = c;
   return bgCache;
 }
-// Cache for bg2
-let bgCache2 = null;
+// Cache for bg2 (declared above, before resize)
 function getBgCache2() {
   if (bgCache2) return bgCache2;
   if (!bgImg2Loaded) return null;
@@ -261,20 +261,82 @@ function setAnalysisStatus(suffix) {
 }
 let audioFile = null;
 let audioFileName = '';
+let _songLoadAbort = null;
+
+// ---- Local Asset Cache (IndexedDB) ----
+const AssetCache = (function() {
+  const DB_NAME = 'pixelRhythm_assetCache';
+  const DB_VER = 1;
+  const STORE = 'assets';
+  let _db = null;
+
+  function open() {
+    if (_db) return Promise.resolve(_db);
+    return new Promise((resolve, reject) => {
+      const req = indexedDB.open(DB_NAME, DB_VER);
+      req.onupgradeneeded = () => { req.result.createObjectStore(STORE); };
+      req.onsuccess = () => { _db = req.result; resolve(_db); };
+      req.onerror = () => { reject(req.error); };
+    });
+  }
+
+  async function get(key) {
+    try {
+      const db = await open();
+      return new Promise((resolve) => {
+        const tx = db.transaction(STORE, 'readonly');
+        const req = tx.objectStore(STORE).get(key);
+        req.onsuccess = () => resolve(req.result || null);
+        req.onerror = () => resolve(null);
+      });
+    } catch(e) { return null; }
+  }
+
+  async function put(key, blob) {
+    try {
+      const db = await open();
+      return new Promise((resolve) => {
+        const tx = db.transaction(STORE, 'readwrite');
+        tx.objectStore(STORE).put(blob, key);
+        tx.oncomplete = () => resolve(true);
+        tx.onerror = () => resolve(false);
+      });
+    } catch(e) { return false; }
+  }
+
+  return { get, put };
+})();
 
 presetSelect.addEventListener('change', async () => {
   const url = presetSelect.value;
   if (!url) return;
+  // Cancel any in-flight song load
+  if (_songLoadAbort) { _songLoadAbort.abort(); _songLoadAbort = null; }
+  const abortCtrl = new AbortController();
+  _songLoadAbort = abortCtrl;
   const songName = presetSelect.options[presetSelect.selectedIndex].text;
   presetSelect.disabled = true;
   setStatus('正在加载「' + songName + '」...');
   try {
-    const resp = await fetch(url);
+    // Check local cache first
+    const cachedBlob = await AssetCache.get(url);
+    if (cachedBlob) {
+      const mimeType = url.endsWith('.mp3') ? 'audio/mpeg' : 'audio/ogg';
+      audioFile = new File([cachedBlob], url, { type: mimeType });
+      audioFileName = url;
+      fileNameEl.textContent = '';
+      setStatus('「' + songName + '」已加载 (缓存)');
+      startBtn.disabled = false;
+      presetSelect.disabled = false;
+      checkSavedChart();
+      preAnalyzeAudio();
+      return;
+    }
+    const resp = await fetch(url, { signal: abortCtrl.signal });
     if (!resp.ok) throw new Error('HTTP ' + resp.status);
     const contentLength = resp.headers.get('Content-Length');
     let blob;
     if (contentLength && resp.body) {
-      // Stream download with progress
       const total = parseInt(contentLength, 10);
       const reader = resp.body.getReader();
       let received = 0;
@@ -282,6 +344,7 @@ presetSelect.addEventListener('change', async () => {
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
+        if (abortCtrl.signal.aborted) throw new DOMException('Aborted', 'AbortError');
         chunks.push(value);
         received += value.length;
         const pct = Math.min(99, Math.round(received / total * 100));
@@ -291,9 +354,10 @@ presetSelect.addEventListener('change', async () => {
       }
       blob = new Blob(chunks);
     } else {
-      // Fallback: no Content-Length
       blob = await resp.blob();
     }
+    if (abortCtrl.signal.aborted) return;
+    AssetCache.put(url, blob);
     const mimeType = url.endsWith('.mp3') ? 'audio/mpeg' : 'audio/ogg';
     audioFile = new File([blob], url, { type: mimeType });
     audioFileName = url;
@@ -304,11 +368,17 @@ presetSelect.addEventListener('change', async () => {
     checkSavedChart();
     preAnalyzeAudio();
   } catch (err) {
+    if (err.name === 'AbortError') {
+      console.log('Song load aborted:', songName);
+      return;
+    }
     setStatus('加载失败，请尝试本地上传');
     presetSelect.disabled = false;
     startBtn.disabled = true;
     audioFile = null;
     console.error('Preset fetch error:', err);
+  } finally {
+    if (_songLoadAbort === abortCtrl) _songLoadAbort = null;
   }
 });
 
@@ -329,7 +399,7 @@ function createAudioContext() {
     if (audioCtx && audioCtx.state !== 'closed') {
       audioCtx.close().catch(() => {});
     }
-  } catch(e) {}
+  } catch(e) { console.warn('AudioContext close error:', e); }
   audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   analyser = audioCtx.createAnalyser();
   analyser.fftSize = 2048;
@@ -779,7 +849,7 @@ async function decodeHitSound() {
   if (!hitSndRaw || !audioCtx) return;
   try {
     hitSndBuffer = await audioCtx.decodeAudioData(hitSndRaw.slice(0));
-  } catch(e) {}
+  } catch(e) { console.warn('Hit sound decode failed:', e); }
 }
 let lastHitSoundTime = 0;
 function playHitSound() {
@@ -795,7 +865,7 @@ function playHitSound() {
     src.connect(gain);
     gain.connect(audioCtx.destination);
     src.start(0);
-  } catch(e) {}
+  } catch(e) { console.warn('Hit sound play error:', e); }
 }
 // Perfect hit sound effect (Star Burst)
 let perfectSndBuffer = null;
@@ -839,11 +909,8 @@ function playPerfectSound() {
     src.connect(gain);
     gain.connect(audioCtx.destination);
     src.start(0);
-  } catch(e) {}
+  } catch(e) { console.warn('Perfect sound play error:', e); }
 }
-
-
-
 // ============ SPOON SHAPE & DRAWING ============
 const SPOON_BOWL = [[-1,1],[-2,2],[-3,3],[-3,3],[-3,3],[-2,2],[-1,1]];
 const SPOON_HANDLE = [[-1,1],[-1,1],[-1,1],[0,0],[0,0],[0,0],[0,0]];

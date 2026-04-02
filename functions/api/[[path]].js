@@ -169,6 +169,21 @@ export async function onRequest(context) {
       return jsonResp({ ok: true });
     }
 
+    // PUT /api/auth/display-name
+    if (path === '/api/auth/display-name' && request.method === 'PUT') {
+      const user = await getUser(request, db);
+      if (!user) return errResp('Unauthorized', 401);
+      const body = await request.json();
+      let name = (body.displayName || '').trim();
+      if (!name) return errResp('昵称不能为空');
+      if (name.length > 20) name = name.slice(0, 20);
+      // Basic sanitization
+      name = name.replace(/[<>"'&]/g, '');
+      if (!name) return errResp('昵称包含无效字符');
+      await db.prepare('UPDATE users SET display_name=?, updated_at=? WHERE id=?').bind(name, Date.now(), user.id).run();
+      return jsonResp({ ok: true, displayName: name });
+    }
+
     // GET /api/leaderboard/*
     if (path.startsWith('/api/leaderboard/') && request.method === 'GET') {
       const songKey = decodeURIComponent(path.replace('/api/leaderboard/', ''));

@@ -1035,7 +1035,7 @@
   if(songs.length>0){
     var cards=scroll.querySelectorAll('.song-card');
     cards[0].classList.add('active');
-    activeIdx=0;
+    // Don't set activeIdx — allow clicking the visually highlighted card to actually load it
   }
 })();
 </script>

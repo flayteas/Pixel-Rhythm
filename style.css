@@ -53,11 +53,8 @@ input[type=range]::-moz-range-track { height: 6px; background: rgba(155,89,182,0
 input[type=range]::-moz-range-thumb { width: 22px; height: 24px; background: url('assets/images/slider-thumb.png') center/contain no-repeat; image-rendering: pixelated; border: none; border-radius: 0; cursor: pointer; }
 #startBtn { margin-top:0; padding:10px 36px; font-size:clamp(14px,3vw,18px); font-family:inherit; color:#fff; cursor:pointer; }
 #startBtn:disabled { cursor:not-allowed; }
-#startBtn:not(:disabled):hover { }
 #loadChartBtn { margin-top:0; padding:8px 20px; font-size:clamp(11px,2vw,13px); font-family:inherit; color:#fff; cursor:pointer; display:none; }
-#loadChartBtn:hover { }
 #fullscreenBtn { margin-top:0; padding:8px 24px; font-size:clamp(12px,2.5vw,14px); font-family:inherit; color:#fff; cursor:pointer; }
-#fullscreenBtn:hover { }
 #hint { margin-top:6px; font-size:10px; color:#d4c5a0; text-align:center; text-shadow:1px 1px 2px rgba(0,0,0,.5); }
 #presetArea { margin-top:4px; text-align:center; }
 #presetStatus { margin-top:4px; color:#fff8e1; font-size:11px; min-height:16px; text-shadow:1px 1px 2px rgba(0,0,0,.5); }
@@ -72,19 +69,10 @@ input[type=range]::-moz-range-thumb { width: 22px; height: 24px; background: url
 #endScreen h2 { font-size:clamp(24px,6vw,40px); color:#ff6b6b; margin-bottom:20px; }
 #endScreen p { font-size:clamp(14px,3.5vw,18px); margin:6px 0; color:#e0c3fc; }
 #restartBtn, #endReplayBtn { margin-top:16px; padding:14px 44px; font-size:clamp(16px,4vw,20px); font-family:inherit; color:#fff; cursor:pointer; }
-#endReplayBtn { }
-#restartBtn:hover { }
-#endReplayBtn:hover { }
 #pauseOverlay { position:absolute; inset:0; display:none; flex-direction:column; align-items:center; justify-content:center; z-index:15; background:rgba(15,12,41,.85); }
 #pauseOverlay.open { display:flex; }
 #pauseOverlay h2 { font-size:clamp(28px,7vw,44px); color:#feca57; margin-bottom:24px; letter-spacing:4px; }
 #pauseOverlay button { margin:6px 0; padding:14px 44px; font-size:clamp(15px,3.5vw,20px); font-family:inherit; color:#fff; cursor:pointer; min-width:180px; }
-#pauseResumeBtn { }
-#pauseResumeBtn:hover { }
-#pauseRetryBtn { }
-#pauseRetryBtn:hover { }
-#pauseExitBtn { }
-#pauseExitBtn:hover { }
 #debugPanel { position:fixed; top:0; right:0; width:420px; max-width:100vw; height:100vh; background:rgba(15,12,41,0.95); border-left:2px solid #9b59b6; z-index:100; display:none; flex-direction:column; overflow:hidden; font-size:13px; color:#e0c3fc; }
 #debugPanel.open { display:flex; }
 #debugPanel .dp-header { display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:rgba(48,43,99,0.9); border-bottom:1px solid #9b59b6; flex-shrink:0; }

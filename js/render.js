@@ -1,5 +1,18 @@
 // render.js — Rendering, game loop & flow control
 
+// Helper: invalidate all background caches (call after resize or fullscreen changes)
+function invalidateBgCaches() {
+  bgCache = null;
+  bgCache2 = null;
+}
+
+// Helper: reset all runtime note/particle/feedback arrays
+function resetGameArrays() {
+  notes = []; notesLeft = []; notesRight = [];
+  particles = []; feedbacks = []; ripples = [];
+  holdTouchMap.clear();
+}
+
 // ============ RIPPLE CLASS ============
 class Ripple {
   constructor(x, y) {
@@ -554,7 +567,6 @@ function drawResumeCountdown() {
     _resumeCountdownActive = false;
     // Now actually resume audio
     if (_resumePendingAudio) {
-      const pauseDuration = (performance.now() - pauseStartTime) / 1000;
       if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
       _resumePendingAudio = false;
     }
@@ -627,11 +639,9 @@ function drawBgDimOverlay() {
   ctx.fillRect(0, 0, W, H);
 }
 // ============ MAIN LOOP ============
-let lastTime = 0;
 function gameLoop(ts) {
   if (!gameRunning) return;
   if (gamePaused) { requestAnimationFrame(gameLoop); return; }
-  lastTime = ts;
   frameCount++;
   const ct = getCurrentTime();
   // Check & draw background with transition
@@ -776,12 +786,12 @@ async function startGame() {
     score = 0; combo = 0; maxComboVal = 0;
     lastMilestone = 0; screenFlashAlpha = 0; milestoneTexts = [];
     perfects = 0; goods = 0; hits = 0; misses = 0;
-    notes = []; notesLeft = []; notesRight = []; particles = []; feedbacks = []; ripples = []; holdTouchMap.clear();
+    resetGameArrays();
     freqData = null; vizCache = null;
     gameEnded = false;
     // Reset background transition
     bgPhase = 1; bgTransiting = false; bgTransDir = 0;
-    bgCache = null; bgCache2 = null;
+    invalidateBgCaches();
     updateUI();
 
     // Loading screen
@@ -859,7 +869,6 @@ async function startGame() {
     sourceNode.onended = () => { if (gameRunning && !gameEnded) endGame(); };
     gameRunning = true;
     gamePaused = false;
-    lastTime = performance.now();
     requestAnimationFrame(gameLoop);
   } catch(err) {
     console.error('startGame error:', err);
@@ -1073,11 +1082,11 @@ async function replayGame() {
   score = 0; combo = 0; maxComboVal = 0;
   lastMilestone = 0; screenFlashAlpha = 0; milestoneTexts = [];
   perfects = 0; goods = 0; hits = 0; misses = 0;
-  notes = []; notesLeft = []; notesRight = []; particles = []; feedbacks = []; ripples = []; holdTouchMap.clear();
+  resetGameArrays();
   freqData = null; vizCache = null;
   gameEnded = false;
   bgPhase = 1; bgTransiting = false; bgTransDir = 0;
-  bgCache = null; bgCache2 = null;
+  invalidateBgCaches();
   updateUI();
 
   createAudioContext();
@@ -1109,7 +1118,6 @@ async function replayGame() {
 
   gameRunning = true;
   gamePaused = false;
-  lastTime = performance.now();
   requestAnimationFrame(gameLoop);
 }
 
@@ -1254,7 +1262,7 @@ function removeForcedLandscape() {
 function onForcedLandscapeResize() {
   if (!_forcedLandscape) return;
   applyForcedLandscape();
-  setTimeout(() => { resize(); bgCache = null; bgCache2 = null; initStars(); }, 50);
+  setTimeout(() => { resize(); invalidateBgCaches(); initStars(); }, 50);
 }
 
 async function enterFullscreen() {
@@ -1284,7 +1292,7 @@ async function enterFullscreen() {
   }
 
   // Resize after a short delay to let fullscreen + rotation settle
-  setTimeout(() => { resize(); bgCache = null; bgCache2 = null; initStars(); }, 400);
+  setTimeout(() => { resize(); invalidateBgCaches(); initStars(); }, 400);
 }
 
 function exitFullscreen() {
@@ -1302,7 +1310,7 @@ function exitFullscreen() {
     if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock();
   } catch(e) {}
   _orientationLocked = false;
-  setTimeout(() => { resize(); bgCache = null; bgCache2 = null; }, 200);
+  setTimeout(() => { resize(); invalidateBgCaches(); }, 200);
 }
 
 fullscreenBtn.addEventListener('click', () => {
@@ -1316,7 +1324,7 @@ fullscreenBtn.addEventListener('click', () => {
 });
 
 // Update button text on fullscreen change
-document.addEventListener('fullscreenchange', () => {
+function handleFullscreenChange() {
   const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
   if (!isFs && _forcedLandscape) {
     _forcedLandscape = false;
@@ -1324,18 +1332,10 @@ document.addEventListener('fullscreenchange', () => {
     window.removeEventListener('resize', onForcedLandscapeResize);
   }
   fullscreenBtn.textContent = isFs ? '\u9000\u51fa\u5168\u5c4f' : '\u5168\u5c4f\u6e38\u73a9';
-  setTimeout(() => { resize(); bgCache = null; bgCache2 = null; }, 200);
-});
-document.addEventListener('webkitfullscreenchange', () => {
-  const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
-  if (!isFs && _forcedLandscape) {
-    _forcedLandscape = false;
-    removeForcedLandscape();
-    window.removeEventListener('resize', onForcedLandscapeResize);
-  }
-  fullscreenBtn.textContent = isFs ? '\u9000\u51fa\u5168\u5c4f' : '\u5168\u5c4f\u6e38\u73a9';
-  setTimeout(() => { resize(); bgCache = null; bgCache2 = null; }, 200);
-});
+  setTimeout(() => { resize(); invalidateBgCaches(); }, 200);
+}
+document.addEventListener('fullscreenchange', handleFullscreenChange);
+document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
 // ============ SETTINGS OVERLAY ============
 document.getElementById('gearBtn').addEventListener('click', () => {
   document.getElementById('startScreen').style.display = 'none';
