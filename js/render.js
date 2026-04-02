@@ -910,18 +910,24 @@ async function startGame() {
     await new Promise(r => setTimeout(r, 50));
     audioBuffer = await decodeAudio(audioFile);
 
-    // Chart: load saved or detect fresh
+    // Chart: load prebuilt → saved → detect fresh
     let detected;
     if (useLoadedChart && audioFileName) {
       detected = loadChart(audioFileName);
       useLoadedChart = false;
     }
-    // Also check if pre-analysis already saved a chart for this song+settings
+    // Check prebuilt charts (bundled, instant)
+    if (!detected && audioFileName) {
+      await loadPrebuiltCharts();
+      detected = getPrebuiltChart(audioFileName, currentDiff);
+      if (detected) console.log('[PR] Using prebuilt chart for', audioFileName, currentDiff, '- notes:', detected.length);
+    }
+    // Check localStorage saved chart
     if (!detected && audioFileName) {
       detected = loadChart(audioFileName);
     }
     if (!detected) {
-      // Use Web Worker for detection
+      // Use Web Worker for detection (only for user-uploaded audio)
       updateWorkerProgress = function(pct, label) {
         ctx.clearRect(0, 0, W, H);
         ctx.fillStyle = '#0f0c29'; ctx.fillRect(0, 0, W, H);
@@ -939,7 +945,7 @@ async function startGame() {
       const pcmData = audioBuffer.getChannelData(0).slice();
       const workerResult = await Promise.race([
         runWorkerDetection(pcmData, audioBuffer.sampleRate, audioBuffer.duration, 'detect'),
-        new Promise((_, rej) => setTimeout(() => rej(new Error('Worker detection timeout')), 30000))
+        new Promise((_, rej) => setTimeout(() => rej(new Error('Worker detection timeout')), 90000))
       ]);
       detected = workerResult.beats;
       detected._sections = workerResult._sections;

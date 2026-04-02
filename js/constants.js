@@ -432,6 +432,21 @@ async function preAnalyzeAudio() {
   preAnalyzing = true;
   let _resolvePreAnalyze;
   _preAnalyzePromise = new Promise(r => { _resolvePreAnalyze = r; });
+
+  // Check prebuilt chart first — if available, skip all analysis
+  if (audioFileName) {
+    await loadPrebuiltCharts();
+    const prebuilt = getPrebuiltChart(audioFileName, currentDiff);
+    if (prebuilt) {
+      console.log('[PR] preAnalyze: using prebuilt chart for', audioFileName, currentDiff);
+      setAnalysisStatus(' (谱面已就绪)');
+      preAnalyzing = false;
+      if (_resolvePreAnalyze) _resolvePreAnalyze();
+      _preAnalyzePromise = null;
+      return;
+    }
+  }
+
   setAnalysisStatus(' (分析中...)');
   updateWorkerProgress = function(pct, label) {
     setAnalysisStatus(` (分析中 ${pct}% ${label})`);
@@ -507,6 +522,46 @@ function quantizeNotes(notes, offset) {
   });
 }
 
+
+// ============ PREBUILT CHARTS (bundled, no analysis needed) ============
+let _prebuiltCharts = null;
+let _prebuiltPromise = null;
+
+async function loadPrebuiltCharts() {
+  if (_prebuiltCharts) return _prebuiltCharts;
+  if (_prebuiltPromise) return _prebuiltPromise;
+  _prebuiltPromise = (async () => {
+    try {
+      const resp = await fetch('assets/prebuilt_charts.json');
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      _prebuiltCharts = await resp.json();
+      console.log('[PR] Prebuilt charts loaded:', Object.keys(_prebuiltCharts).length, 'entries');
+    } catch(e) {
+      console.warn('[PR] Prebuilt charts load failed:', e);
+      _prebuiltCharts = {};
+    }
+    return _prebuiltCharts;
+  })();
+  return _prebuiltPromise;
+}
+
+function getPrebuiltChart(songPath, diff) {
+  if (!_prebuiltCharts) return null;
+  // Key format: "assets/music/song.mp3|hold|easy" or "assets/music/song.mp3|easy"
+  let key = songPath;
+  if (enableHold) key += '|hold';
+  key += '|' + diff;
+  const chart = _prebuiltCharts[key];
+  if (!chart) return null;
+  // Convert from saved format to runtime format
+  return chart.notes.map(n => {
+    if (n.type === 'hold') return { type: 'hold', startTime: n.st, endTime: n.et, dir: n.d, color: n.c || '#48dbfb', _mergedCount: n.mc || 2 };
+    return { type: 'tap', time: n.t, dir: n.d, color: n.c || '#48dbfb' };
+  });
+}
+
+// Start loading prebuilt charts immediately
+loadPrebuiltCharts();
 
 // ============ CHART SAVE / LOAD (localStorage) ============
 const CHART_STORAGE_KEY = 'pixelRhythm_charts';

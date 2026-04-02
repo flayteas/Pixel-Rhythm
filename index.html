@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, viewport-fit=cover">
 <title>像素笛韵 - Pixel Rhythm</title>
-<link rel="stylesheet" href="style.css?v=63">
+<link rel="stylesheet" href="style.css?v=64">
 </head>
 <body>
 <div id="app">
@@ -170,6 +170,15 @@
     <h2 style="font-size:clamp(20px,5vw,28px);color:#feca57;margin:16px 0 12px;letter-spacing:3px;">更新日志</h2>
     <button id="changelogBackBtn" class="pixel-btn" style="margin-bottom:16px;padding:12px 40px;font-size:clamp(14px,3.5vw,18px);">返回</button>
     <div id="changelogContent" style="max-width:min(600px,90vw);width:100%;color:#c8c0e0;font-size:13px;line-height:1.7;text-align:left;padding-bottom:20px;">
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v64 — 预制谱面 & 分析修复</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>全部内置歌曲预制 4 个难度谱面，选歌后秒开游戏，无需等待分析</li>
+          <li>修复手机端「Worker detection timeout」启动失败的问题</li>
+          <li>自定义上传音频的 Worker 超时放宽至 90 秒，适配低性能设备</li>
+          <li>预分析阶段自动识别已有预制谱面，跳过不必要的音频解码和 Worker 调用</li>
+        </ul>
+      </div>
       <div style="margin-bottom:18px;">
         <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v63 — 竖屏下落模式 & 体验优化</h3>
         <ul style="padding-left:18px;margin:0;">
