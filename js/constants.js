@@ -423,12 +423,15 @@ async function decodeAudio(file) {
 
 
 let preAnalyzing = false;
+let _preAnalyzePromise = null;
 
 let updateWorkerProgress = null;
 
 async function preAnalyzeAudio() {
   if (!audioFile || preAnalyzing) return;
   preAnalyzing = true;
+  let _resolvePreAnalyze;
+  _preAnalyzePromise = new Promise(r => { _resolvePreAnalyze = r; });
   setAnalysisStatus(' (分析中...)');
   updateWorkerProgress = function(pct, label) {
     setAnalysisStatus(` (分析中 ${pct}% ${label})`);
@@ -466,6 +469,8 @@ async function preAnalyzeAudio() {
   }
   preAnalyzing = false;
   updateWorkerProgress = null;
+  if (_resolvePreAnalyze) _resolvePreAnalyze();
+  _preAnalyzePromise = null;
 }
 
 // ============ BPM QUANTIZATION (post-process, mostly redundant now but kept for loaded charts) ============

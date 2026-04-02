@@ -898,6 +898,9 @@ async function startGame() {
     ctx.textAlign = 'center';
     ctx.fillText('\u6b63\u5728\u5206\u6790\u97f3\u9891\u8282\u594f...', W / 2, H / 2);
 
+    // Wait for any in-progress pre-analysis to finish (avoids worker contention)
+    if (_preAnalyzePromise) await _preAnalyzePromise;
+
     // Audio context (reset properly)
     createAudioContext();
     await decodeHitSound();
