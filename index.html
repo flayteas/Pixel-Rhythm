@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, viewport-fit=cover">
 <title>像素笛韵 - Pixel Rhythm</title>
-<link rel="stylesheet" href="style.css?v=62">
+<link rel="stylesheet" href="style.css?v=63">
 </head>
 <body>
 <div id="app">
@@ -170,6 +170,17 @@
     <h2 style="font-size:clamp(20px,5vw,28px);color:#feca57;margin:16px 0 12px;letter-spacing:3px;">更新日志</h2>
     <button id="changelogBackBtn" class="pixel-btn" style="margin-bottom:16px;padding:12px 40px;font-size:clamp(14px,3.5vw,18px);">返回</button>
     <div id="changelogContent" style="max-width:min(600px,90vw);width:100%;color:#c8c0e0;font-size:13px;line-height:1.7;text-align:left;padding-bottom:20px;">
+      <div style="margin-bottom:18px;">
+        <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v63 — 体验优化 & Bug 修复</h3>
+        <ul style="padding-left:18px;margin:0;">
+          <li>修复默认高亮歌曲无法点击加载的问题</li>
+          <li>新增音频本地缓存（IndexedDB），重复选歌秒加载</li>
+          <li>排行榜现在可以自由切换歌曲和难度查看</li>
+          <li>云同步新增自定义昵称功能，昵称会显示在排行榜上</li>
+          <li>修复加载歌曲时切换其他歌曲导致两首歌同时加载的问题</li>
+          <li>代码维护：清理死代码、提取常量和辅助函数、移除空 CSS 选择器</li>
+        </ul>
+      </div>
       <div style="margin-bottom:18px;">
         <h3 style="color:#ff6b6b;font-size:15px;margin-bottom:6px;">v62 — 云存档恢复码</h3>
         <ul style="padding-left:18px;margin:0;">
