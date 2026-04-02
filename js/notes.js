@@ -30,6 +30,11 @@ class Note {
     const progress = 1 - (this.beatTime - currentTime) / NOTE_TRAVEL_TIME;
     const dist = this.spawnDist * (1 - progress);
     const visualDist = dist + JUDGE_DIST;
+    if (verticalMode) {
+      const x = (this.dir === 0 ? vLaneLeftX : vLaneRightX) + this.yOffset;
+      const y = vJudgeY - dist;
+      return { x, y, progress, dist: visualDist };
+    }
     const x = charX + this.dx * visualDist;
     const y = charY + this.yOffset;
     return { x, y, progress, dist: visualDist };
@@ -46,7 +51,11 @@ class Note {
       ctx.lineWidth = 1;
       ctx.beginPath();
       ctx.moveTo(x, y);
-      ctx.lineTo(charX + this.dx * (dist + 30), charY + this.yOffset);
+      if (verticalMode) {
+        ctx.lineTo(x, y - 30);
+      } else {
+        ctx.lineTo(charX + this.dx * (dist + 30), charY + this.yOffset);
+      }
       ctx.stroke();
       ctx.globalAlpha = 1;
     }
@@ -58,11 +67,17 @@ class Note {
       ctx.save();
       ctx.globalAlpha = alpha;
       ctx.imageSmoothingEnabled = false;
-      ctx.drawImage(noteImg, x - drawSize / 2, y - drawSize / 2, drawSize, drawSize);
+      if (verticalMode) {
+        ctx.translate(x, y);
+        ctx.rotate(this.dir === 0 ? -Math.PI / 2 : Math.PI / 2);
+        ctx.drawImage(noteImg, -drawSize / 2, -drawSize / 2, drawSize, drawSize);
+      } else {
+        ctx.drawImage(noteImg, x - drawSize / 2, y - drawSize / 2, drawSize, drawSize);
+      }
       ctx.restore();
     } else {
-      // Fallback to spoon sprite if image not loaded
-      drawSinanSpoon(x, y, this.size, this.angle + Math.PI, this.color, alpha);
+      const angle = verticalMode ? (Math.PI / 2) : (this.angle + Math.PI);
+      drawSinanSpoon(x, y, this.size, angle, this.color, alpha);
     }
     // Dual-press golden glow effect (with fade-out when partner is judged)
     if ((this.isDual || this._dualFadeStart) && dualEffectEnabled) {
@@ -127,8 +142,14 @@ class Note {
     // Tip marker: red dot at the judgment point on the note
     if (showGuideDots) {
       const hs = this.size;
-      const frontX = x - this.dx * hs;
-      const frontY = y;
+      let frontX, frontY;
+      if (verticalMode) {
+        frontX = x;
+        frontY = y + hs;
+      } else {
+        frontX = x - this.dx * hs;
+        frontY = y;
+      }
       ctx.fillStyle = '#ff3333';
       ctx.globalAlpha = alpha * 0.9;
       ctx.beginPath(); ctx.arc(frontX, frontY, 3, 0, Math.PI * 2); ctx.fill();
@@ -178,6 +199,11 @@ class HoldNote {
   }
   _getPosForTime(beatTime, currentTime) {
     const { dist, progress } = this._getDistForTime(beatTime, currentTime);
+    if (verticalMode) {
+      const x = (this.dir === 0 ? vLaneLeftX : vLaneRightX) + this.yOffset;
+      const y = vJudgeY - (dist - JUDGE_DIST);
+      return { x, y, progress, dist };
+    }
     const x = charX + this.dx * dist;
     const y = charY + this.yOffset;
     return { x, y, progress, dist };
@@ -190,9 +216,15 @@ class HoldNote {
       const t = elapsed / 0.4; // 0→1
       const fadeAlpha = (1 - t) * 0.6;
       const shrink = 1 - t * 0.5;
-      const headDist = JUDGE_DIST;
-      const hx = charX + this.dx * headDist;
-      const hy = charY + this.yOffset;
+      let hx, hy;
+      if (verticalMode) {
+        hx = (this.dir === 0 ? vLaneLeftX : vLaneRightX) + this.yOffset;
+        hy = vJudgeY;
+      } else {
+        const headDist = JUDGE_DIST;
+        hx = charX + this.dx * headDist;
+        hy = charY + this.yOffset;
+      }
       ctx.save();
       ctx.globalAlpha = fadeAlpha;
       ctx.translate(hx, hy);
@@ -221,10 +253,19 @@ class HoldNote {
     const maxDist = this.spawnDist + JUDGE_DIST + 40;
     if (tailDist > maxDist) tailDist = maxDist;
 
-    const headX = charX + dx * headDist;
-    const headY = charY + this.yOffset;
-    const tailX = charX + dx * tailDist;
-    const tailY = charY + this.yOffset;
+    let headX, headY, tailX, tailY;
+    if (verticalMode) {
+      const laneX = (this.dir === 0 ? vLaneLeftX : vLaneRightX) + this.yOffset;
+      headX = laneX;
+      headY = vJudgeY - (headDist - JUDGE_DIST);
+      tailX = laneX;
+      tailY = vJudgeY - (tailDist - JUDGE_DIST);
+    } else {
+      headX = charX + dx * headDist;
+      headY = charY + this.yOffset;
+      tailX = charX + dx * tailDist;
+      tailY = charY + this.yOffset;
+    }
 
     // Draw hold body (thick line with rounded caps)
     const bodyWidth = this._holding ? 16 : 12;
@@ -279,7 +320,15 @@ class HoldNote {
         const drawSize = this.size * 2;
         ctx.globalAlpha = alpha;
         ctx.imageSmoothingEnabled = false;
-        ctx.drawImage(noteImg, tailX - drawSize/2, tailY - drawSize/2, drawSize, drawSize);
+        if (verticalMode) {
+          ctx.save();
+          ctx.translate(tailX, tailY);
+          ctx.rotate(this.dir === 0 ? -Math.PI / 2 : Math.PI / 2);
+          ctx.drawImage(noteImg, -drawSize / 2, -drawSize / 2, drawSize, drawSize);
+          ctx.restore();
+        } else {
+          ctx.drawImage(noteImg, tailX - drawSize/2, tailY - drawSize/2, drawSize, drawSize);
+        }
       }
     }
 

@@ -216,6 +216,77 @@ function drawCharacter() {
 let judgeGlow = 0;
 function hslColor(h, s, l) { return `hsl(${h},${s}%,${l}%)`; }
 function drawJudgmentArcs(ct) {
+  // ---- VERTICAL MODE: horizontal judgment bars at bottom ----
+  if (verticalMode) {
+    judgeGlow += 0.05;
+    const pulse = 0.35 + Math.sin(judgeGlow) * 0.15;
+    const comboGlow = combo >= 10;
+    const hue1 = (judgeGlow * 60) % 360;
+    const hue2 = (hue1 + 180) % 360;
+    const barW = Math.max(W * 0.14, 44);
+    const barH = 4;
+    const lanes = [
+      { x: vLaneLeftX, color: '#48dbfb', hue: hue1, nearDist: nearestLeftTipDist },
+      { x: vLaneRightX, color: '#ff6b6b', hue: hue2, nearDist: nearestRightTipDist }
+    ];
+    for (const lane of lanes) {
+      const bx = lane.x - barW / 2;
+      // Base bar
+      ctx.save();
+      if (comboGlow) {
+        ctx.globalAlpha = 0.9;
+        ctx.fillStyle = hslColor(lane.hue, 90, 70);
+      } else {
+        ctx.globalAlpha = pulse;
+        ctx.fillStyle = lane.color;
+      }
+      ctx.fillRect(bx, vJudgeY - barH / 2, barW, barH);
+      // Inner bright line
+      ctx.globalAlpha = comboGlow ? 0.6 : 0.4;
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(bx, vJudgeY - 1, barW, 2);
+      ctx.restore();
+
+      // Dynamic glow based on nearest note
+      if (typeof ct === 'number' && lane.nearDist < 120) {
+        const intensity = 1 - lane.nearDist / 120;
+        const i2 = intensity * intensity;
+        ctx.save();
+        ctx.globalAlpha = 0.15 + i2 * 0.7;
+        ctx.shadowColor = 'rgba(255,40,40,1)';
+        ctx.shadowBlur = 8 + i2 * 30;
+        ctx.fillStyle = `rgba(255,${Math.round(80 - i2 * 60)},${Math.round(60 - i2 * 50)},1)`;
+        ctx.fillRect(bx - 4, vJudgeY - barH, barW + 8, barH * 2);
+        ctx.restore();
+      }
+
+      // Faint judgment zone background
+      ctx.globalAlpha = 0.06;
+      ctx.fillStyle = '#ff3c3c';
+      ctx.fillRect(bx - 6, vJudgeY - tipJudge.hitPx, barW + 12, tipJudge.hitPx * 2);
+      ctx.globalAlpha = 1;
+    }
+
+    // Guide rings (horizontal bands)
+    if (showGuideDots) {
+      for (const lane of lanes) {
+        const bx = lane.x - barW / 2;
+        // Hit band
+        ctx.globalAlpha = 0.06;
+        ctx.fillStyle = '#2ecc71';
+        ctx.fillRect(bx - 4, vJudgeY - tipJudge.hitPx, barW + 8, tipJudge.hitPx * 2);
+        // Good band
+        ctx.fillStyle = '#48dbfb';
+        ctx.fillRect(bx - 4, vJudgeY - tipJudge.goodPx, barW + 8, tipJudge.goodPx * 2);
+        // Perfect band
+        ctx.globalAlpha = 0.10;
+        ctx.fillStyle = '#feca57';
+        ctx.fillRect(bx - 4, vJudgeY - tipJudge.perfectPx, barW + 8, tipJudge.perfectPx * 2);
+        ctx.globalAlpha = 1;
+      }
+    }
+    return;
+  }
   judgeGlow += 0.05;
   const r = JUDGE_DIST;
   const arcRad = (ARC_DEG / 2) * Math.PI / 180;
@@ -504,6 +575,31 @@ function drawProgress(ct) {
   ctx.fillRect(bx, by, barW * pct, barH);
 }
 function drawCenterDivider() {
+  if (verticalMode) {
+    // Two vertical lane guide lines
+    ctx.globalAlpha = 0.08;
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 1;
+    const dashLen = 6, gapLen = 8;
+    for (const lx of [vLaneLeftX, vLaneRightX]) {
+      ctx.beginPath();
+      for (let y = 0; y < H; y += dashLen + gapLen) {
+        ctx.moveTo(lx, y);
+        ctx.lineTo(lx, Math.min(y + dashLen, H));
+      }
+      ctx.stroke();
+    }
+    // L/R labels above judgment line
+    ctx.globalAlpha = 0.25;
+    ctx.font = '12px Courier New, monospace';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#48dbfb';
+    ctx.fillText('L', vLaneLeftX, vJudgeY + 20);
+    ctx.fillStyle = '#ff6b6b';
+    ctx.fillText('R', vLaneRightX, vJudgeY + 20);
+    ctx.globalAlpha = 1;
+    return;
+  }
   // Subtle vertical dashed line at character center to show left/right zones
   ctx.globalAlpha = 0.12;
   ctx.strokeStyle = '#fff';
@@ -1273,22 +1369,24 @@ async function enterFullscreen() {
     else if (el.msRequestFullscreen) await el.msRequestFullscreen();
   } catch(e) { console.warn('Fullscreen request failed:', e); }
 
-  // Try native orientation lock first
+  // Try native orientation lock first (skip in vertical mode)
   _orientationLocked = false;
-  try {
-    if (screen.orientation && screen.orientation.lock) {
-      await screen.orientation.lock('landscape');
-      _orientationLocked = true;
+  if (!verticalMode) {
+    try {
+      if (screen.orientation && screen.orientation.lock) {
+        await screen.orientation.lock('landscape');
+        _orientationLocked = true;
+      }
+    } catch(e) {
+      _orientationLocked = false;
     }
-  } catch(e) {
-    _orientationLocked = false;
-  }
 
-  // If native lock failed and device is portrait, use CSS transform fallback
-  if (!_orientationLocked && isPortrait()) {
-    _forcedLandscape = true;
-    applyForcedLandscape();
-    window.addEventListener('resize', onForcedLandscapeResize);
+    // If native lock failed and device is portrait, use CSS transform fallback
+    if (!_orientationLocked && isPortrait()) {
+      _forcedLandscape = true;
+      applyForcedLandscape();
+      window.addEventListener('resize', onForcedLandscapeResize);
+    }
   }
 
   // Resize after a short delay to let fullscreen + rotation settle

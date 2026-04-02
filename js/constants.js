@@ -30,6 +30,10 @@ let charImg = new Image();
 let charLoaded = false;
 let charX, charY, charW, charH;
 let charBounce = 0;
+let verticalMode = false;
+let vJudgeY = 0;
+let vLaneLeftX = 0;
+let vLaneRightX = 0;
 
 // Difficulty settings
 const DIFF_PRESETS = {
@@ -146,6 +150,13 @@ function resize() {
   charX = W / 2;
   charY = isLandscapeMobile ? H * 0.48 : H * 0.45;
   JUDGE_DIST = charW / 2 + JUDGE_DIST_BASE;
+  if (verticalMode) {
+    charY = H * 0.30;
+    vJudgeY = H * 0.82;
+    const laneGap = Math.max(W * 0.18, 55);
+    vLaneLeftX = charX - laneGap;
+    vLaneRightX = charX + laneGap;
+  }
   bgCache = null;
   bgCache2 = null;
   spoonCache = {};
@@ -708,6 +719,7 @@ function saveSettings() {
       mergeThresh: mergeThreshMs,
       holdMinDuration: holdMinDuration,
       dualEffect: dualEffectEnabled,
+      verticalMode: verticalMode,
       hitVolume: Math.round(hitVolume * 100),
       perfectVolume: Math.round(perfectVolume * 100)
     };
@@ -782,6 +794,11 @@ function loadSettings() {
       dualEffectEnabled = s.dualEffect;
       document.getElementById('dualEffect').checked = dualEffectEnabled;
     }
+    if (s.verticalMode !== undefined) {
+      verticalMode = s.verticalMode;
+      const el = document.getElementById('verticalModeCheck');
+      if (el) el.checked = verticalMode;
+    }
     // Hit volume
     if (typeof s.hitVolume === 'number' && s.hitVolume >= 0 && s.hitVolume <= 100) {
       hitVolume = s.hitVolume / 100;
@@ -814,6 +831,7 @@ function loadSettings() {
     ['mergeThreshSlider', 'input'],
     ['holdMinSlider', 'input'],
     ['dualEffect', 'change'],
+    ['verticalModeCheck', 'change'],
     ['hitVolSlider', 'input'],
     ['perfectVolSlider', 'input']
   ];
@@ -821,6 +839,11 @@ function loadSettings() {
     const el = document.getElementById(id);
     if (el) el.addEventListener(evt, saveSettings);
   }
+})();
+
+(function() {
+  const el = document.getElementById('verticalModeCheck');
+  if (el) el.addEventListener('change', () => { verticalMode = el.checked; resize(); });
 })();
 
 // Hold note touch tracking
