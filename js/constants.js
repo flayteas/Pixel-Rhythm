@@ -438,14 +438,30 @@ async function preAnalyzeAudio() {
   };
   try {
     const tmpCtx = new (window.AudioContext || window.webkitAudioContext)();
+    // Resume context (may be suspended on mobile without user gesture)
+    if (tmpCtx.state === 'suspended') {
+      try { await Promise.race([tmpCtx.resume(), new Promise(r => setTimeout(r, 2000))]); } catch(e) {}
+    }
+    if (tmpCtx.state === 'suspended') {
+      console.warn('[PR] preAnalyze: AudioContext still suspended, skipping pre-analysis');
+      tmpCtx.close().catch(() => {});
+      throw new Error('AudioContext suspended');
+    }
     const arrBuf = await audioFile.arrayBuffer();
     const blob = new Blob([arrBuf], { type: audioFile.type });
     audioFile = new File([blob], audioFile.name, { type: audioFile.type });
-    audioBuffer = await tmpCtx.decodeAudioData(arrBuf);
+    // Timeout decodeAudioData to prevent infinite hang
+    audioBuffer = await Promise.race([
+      tmpCtx.decodeAudioData(arrBuf),
+      new Promise((_, rej) => setTimeout(() => rej(new Error('decodeAudioData timeout')), 15000))
+    ]);
     tmpCtx.close().catch(() => {});
     applyDifficulty();
     const pcmData = audioBuffer.getChannelData(0).slice();
-    const workerResult = await runWorkerDetection(pcmData, audioBuffer.sampleRate, audioBuffer.duration, 'detect');
+    const workerResult = await Promise.race([
+      runWorkerDetection(pcmData, audioBuffer.sampleRate, audioBuffer.duration, 'detect'),
+      new Promise((_, rej) => setTimeout(() => rej(new Error('Worker detection timeout')), 30000))
+    ]);
     let quantized = workerResult.beats;
     beats = quantized.map(b => {
       if (b.type === 'hold') return { type: 'hold', startTime: b.startTime + noteOffsetMs/1000, endTime: b.endTime + noteOffsetMs/1000, dir: b.dir, color: b.color, _mergedCount: b._mergedCount || 2, _spawned: false };

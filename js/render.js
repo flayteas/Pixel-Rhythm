@@ -898,8 +898,10 @@ async function startGame() {
     ctx.textAlign = 'center';
     ctx.fillText('\u6b63\u5728\u5206\u6790\u97f3\u9891\u8282\u594f...', W / 2, H / 2);
 
-    // Wait for any in-progress pre-analysis to finish (avoids worker contention)
-    if (_preAnalyzePromise) await _preAnalyzePromise;
+    // Wait for any in-progress pre-analysis to finish (with timeout to prevent infinite hang)
+    if (_preAnalyzePromise) {
+      await Promise.race([_preAnalyzePromise, new Promise(r => setTimeout(r, 8000))]);
+    }
 
     // Audio context (reset properly)
     createAudioContext();
@@ -913,6 +915,10 @@ async function startGame() {
     if (useLoadedChart && audioFileName) {
       detected = loadChart(audioFileName);
       useLoadedChart = false;
+    }
+    // Also check if pre-analysis already saved a chart for this song+settings
+    if (!detected && audioFileName) {
+      detected = loadChart(audioFileName);
     }
     if (!detected) {
       // Use Web Worker for detection
@@ -931,7 +937,10 @@ async function startGame() {
         ctx.fillRect(barX, barY, barW * pct / 100, barH);
       };
       const pcmData = audioBuffer.getChannelData(0).slice();
-      const workerResult = await runWorkerDetection(pcmData, audioBuffer.sampleRate, audioBuffer.duration, 'detect');
+      const workerResult = await Promise.race([
+        runWorkerDetection(pcmData, audioBuffer.sampleRate, audioBuffer.duration, 'detect'),
+        new Promise((_, rej) => setTimeout(() => rej(new Error('Worker detection timeout')), 30000))
+      ]);
       detected = workerResult.beats;
       detected._sections = workerResult._sections;
       detected._swingInfo = workerResult._swingInfo;
