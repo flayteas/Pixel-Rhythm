@@ -69,14 +69,14 @@ class Note {
       ctx.imageSmoothingEnabled = false;
       if (verticalMode) {
         ctx.translate(x, y);
-        ctx.rotate(this.dir === 0 ? -Math.PI / 2 : Math.PI / 2);
+        ctx.rotate(Math.PI);
         ctx.drawImage(noteImg, -drawSize / 2, -drawSize / 2, drawSize, drawSize);
       } else {
         ctx.drawImage(noteImg, x - drawSize / 2, y - drawSize / 2, drawSize, drawSize);
       }
       ctx.restore();
     } else {
-      const angle = verticalMode ? (Math.PI / 2) : (this.angle + Math.PI);
+      const angle = verticalMode ? Math.PI : (this.angle + Math.PI);
       drawSinanSpoon(x, y, this.size, angle, this.color, alpha);
     }
     // Dual-press golden glow effect (with fade-out when partner is judged)
@@ -419,7 +419,7 @@ function detectDualNotes(beatsArr, threshold) {
   for (const b of beatsArr) {
     b.isDual = false;
     b._dualPairId = 0;
-    b.yOffset = (Math.random() - 0.5) * 10; // -5 to +5 px
+    b.yOffset = verticalMode ? 0 : (Math.random() - 0.5) * 10; // -5 to +5 px (horizontal only)
   }
   // Sort by time for efficient scanning
   const sorted = beatsArr.slice().sort((a, b) => {
@@ -467,7 +467,7 @@ function detectDualNotes(beatsArr, threshold) {
       if (b.type === 'hold') b.startTime = avg; else b.time = avg;
       a.isDual = true;  b.isDual = true;
       a._dualPairId = pairId; b._dualPairId = pairId;
-      a.yOffset = -12; b.yOffset = -12; // shift upward
+      a.yOffset = verticalMode ? 0 : -12; b.yOffset = verticalMode ? 0 : -12; // shift upward (horizontal only)
       used.add(a); used.add(b);
       pairId++;
     }
@@ -571,13 +571,13 @@ function injectDualNotes(beatsArr, diff) {
       twin.color = b.color || NOTE_COLOR_LEFT;
       twin.isDual = true;
       twin._dualPairId = pairId;
-      twin.yOffset = -12;
+      twin.yOffset = verticalMode ? 0 : -12;
       twin._spawned = false;
       twin._injectedTwin = true; // mark as injected for limit enforcement
 
       b.isDual = true;
       b._dualPairId = pairId;
-      b.yOffset = -12;
+      b.yOffset = verticalMode ? 0 : -12;
 
       beatsArr.push(twin);
       usedTimes.add(tKey);
@@ -622,13 +622,13 @@ function enforceSpecialNoteLimits(beatsArr, diff, durationSec) {
         // Replace hold with two tap notes at start and end positions
         newBeats.push({
           type: 'tap', time: h.startTime, dir: h.dir, color: h.color,
-          isDual: false, _dualPairId: 0, yOffset: (Math.random() - 0.5) * 10, _spawned: false
+          isDual: false, _dualPairId: 0, yOffset: verticalMode ? 0 : (Math.random() - 0.5) * 10, _spawned: false
         });
         // Only add end tap if it's far enough from start (>= 150ms)
         if (h.endTime - h.startTime >= 0.15) {
           newBeats.push({
             type: 'tap', time: h.endTime, dir: h.dir, color: h.color,
-            isDual: false, _dualPairId: 0, yOffset: (Math.random() - 0.5) * 10, _spawned: false
+            isDual: false, _dualPairId: 0, yOffset: verticalMode ? 0 : (Math.random() - 0.5) * 10, _spawned: false
           });
         }
       } else {
@@ -681,7 +681,7 @@ function enforceSpecialNoteLimits(beatsArr, diff, durationSec) {
             }
             n.isDual = false;
             n._dualPairId = 0;
-            n.yOffset = (Math.random() - 0.5) * 10;
+            n.yOffset = verticalMode ? 0 : (Math.random() - 0.5) * 10;
           }
         }
       }

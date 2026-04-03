@@ -260,10 +260,10 @@ function drawJudgmentArcs(ct) {
         ctx.restore();
       }
 
-      // Faint judgment zone background
+      // Faint judgment zone background (above the line, where notes arrive from)
       ctx.globalAlpha = 0.06;
       ctx.fillStyle = '#ff3c3c';
-      ctx.fillRect(bx - 6, vJudgeY - tipJudge.hitPx, barW + 12, tipJudge.hitPx * 2);
+      ctx.fillRect(bx - 6, vJudgeY - tipJudge.hitPx * 2, barW + 12, tipJudge.hitPx * 2);
       ctx.globalAlpha = 1;
     }
 
@@ -589,14 +589,14 @@ function drawCenterDivider() {
       }
       ctx.stroke();
     }
-    // L/R labels above judgment line
+    // L/R labels below judgment line
     ctx.globalAlpha = 0.25;
     ctx.font = '12px Courier New, monospace';
     ctx.textAlign = 'center';
     ctx.fillStyle = '#48dbfb';
-    ctx.fillText('L', vLaneLeftX, vJudgeY + 20);
+    ctx.fillText('L', vLaneLeftX, vJudgeY + 18);
     ctx.fillStyle = '#ff6b6b';
-    ctx.fillText('R', vLaneRightX, vJudgeY + 20);
+    ctx.fillText('R', vLaneRightX, vJudgeY + 18);
     ctx.globalAlpha = 1;
     return;
   }
